@@ -1,0 +1,579 @@
+-- SERVICES
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+local SoundService = game:GetService("SoundService")
+local UserInputService = game:GetService("UserInputService")
+
+-- Function to setup GUI for a player
+local function setupGui(player)
+	local playerGui = player:WaitForChild("PlayerGui")
+	
+	-- Remove old one if it exists
+	if playerGui:FindFirstChild("CinematicMusicGui") then
+		playerGui.CinematicMusicGui:Destroy()
+	end
+
+	-- CREATE MAIN SCREEN GUI
+	local screenGui = Instance.new("ScreenGui")
+	screenGui.Name = "CinematicMusicGui"
+	screenGui.ResetOnSpawn = false
+	screenGui.Parent = playerGui
+
+	-- Settings state
+	local introEnabled = true
+
+	-- Forward declaration so functions can reference each other
+	local createTriggerButton, runCinematicIntro
+
+	-- ==========================================
+	-- 3. MAIN GUI SETUP
+	-- ==========================================
+	local mainPanel = Instance.new("Frame")
+	mainPanel.Name = "MainPanel"
+	mainPanel.Size = UDim2.new(0, 320, 0, 410) -- Expanded to fit all 4 songs
+	mainPanel.Position = UDim2.new(0.5, -160, 0.5, -205)
+	mainPanel.BackgroundColor3 = Color3.fromRGB(15, 15, 20)
+	mainPanel.Visible = false
+	mainPanel.Parent = screenGui
+
+	local mpCorner = Instance.new("UICorner")
+	mpCorner.CornerRadius = UDim.new(0, 16)
+	mpCorner.Parent = mainPanel
+
+	local mpStroke = Instance.new("UIStroke")
+	mpStroke.Thickness = 2
+	mpStroke.Color = Color3.fromRGB(100, 100, 255)
+	mpStroke.Parent = mainPanel
+
+	local panelTitle = Instance.new("TextLabel")
+	panelTitle.Size = UDim2.new(1, -40, 0, 40)
+	panelTitle.Position = UDim2.new(0, 15, 0, 0)
+	panelTitle.BackgroundTransparency = 1
+	panelTitle.Text = "🎵 Music Hub"
+	panelTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+	panelTitle.TextSize = 20
+	panelTitle.Font = Enum.Font.GothamBold
+	panelTitle.TextXAlignment = Enum.TextXAlignment.Left
+	panelTitle.Parent = mainPanel
+
+	-- Close Button (×) to go back to the first state
+	local closeButton = Instance.new("TextButton")
+	closeButton.Size = UDim2.new(0, 30, 0, 30)
+	closeButton.Position = UDim2.new(1, -35, 0, 5)
+	closeButton.BackgroundColor3 = Color3.fromRGB(180, 40, 40)
+	closeButton.Text = "×"
+	closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+	closeButton.TextSize = 22
+	closeButton.Font = Enum.Font.GothamBold
+	closeButton.Parent = mainPanel
+
+	local cbCorner = Instance.new("UICorner")
+	cbCorner.CornerRadius = UDim.new(0, 8)
+	cbCorner.Parent = closeButton
+
+	-- Jolly Button
+	local jollyButton = Instance.new("TextButton")
+	jollyButton.Size = UDim2.new(0, 260, 0, 35)
+	jollyButton.Position = UDim2.new(0.5, -130, 0, 50)
+	jollyButton.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+	jollyButton.Text = "Jolly"
+	jollyButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+	jollyButton.TextSize = 16
+	jollyButton.Font = Enum.Font.GothamBold
+	jollyButton.Parent = mainPanel
+
+	local jCorner = Instance.new("UICorner")
+	jCorner.CornerRadius = UDim.new(0, 10)
+	jCorner.Parent = jollyButton
+
+	local jStroke = Instance.new("UIStroke")
+	jStroke.Thickness = 2
+	jStroke.Parent = jollyButton
+
+	-- Hecker Button
+	local heckerButton = Instance.new("TextButton")
+	heckerButton.Size = UDim2.new(0, 260, 0, 35)
+	heckerButton.Position = UDim2.new(0.5, -130, 0, 95)
+	heckerButton.BackgroundColor3 = Color3.fromRGB(30, 15, 15)
+	heckerButton.Text = "Hecker"
+	heckerButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+	heckerButton.TextSize = 16
+	heckerButton.Font = Enum.Font.GothamBold
+	heckerButton.Parent = mainPanel
+
+	local hCorner = Instance.new("UICorner")
+	hCorner.CornerRadius = UDim.new(0, 10)
+	hCorner.Parent = heckerButton
+
+	local hStroke = Instance.new("UIStroke")
+	hStroke.Thickness = 2.5
+	hStroke.Parent = heckerButton
+
+	local hGradient = Instance.new("UIGradient")
+	hGradient.Color = ColorSequence.new({
+		ColorSequenceKeypoint.new(0.00, Color3.fromRGB(255, 0, 0)),
+		ColorSequenceKeypoint.new(0.30, Color3.fromRGB(150, 0, 0)),
+		ColorSequenceKeypoint.new(0.50, Color3.fromRGB(255, 80, 80)),
+		ColorSequenceKeypoint.new(0.70, Color3.fromRGB(255, 0, 0)),
+		ColorSequenceKeypoint.new(1.00, Color3.fromRGB(100, 0, 0))
+	})
+	hGradient.Parent = hStroke
+
+	task.spawn(function()
+		while heckerButton and heckerButton.Parent do
+			hGradient.Rotation = (hGradient.Rotation + 3) % 360
+			RunService.RenderStepped:Wait()
+		end
+	end)
+
+	local heckerBinaryOverlay = Instance.new("TextLabel")
+	heckerBinaryOverlay.Size = UDim2.new(1, 0, 1, 0)
+	heckerBinaryOverlay.BackgroundTransparency = 1
+	heckerBinaryOverlay.Text = "10101010101010"
+	heckerBinaryOverlay.TextColor3 = Color3.fromRGB(255, 50, 50)
+	heckerBinaryOverlay.TextTransparency = 0.75
+	heckerBinaryOverlay.TextSize = 11
+	heckerBinaryOverlay.Font = Enum.Font.Code
+	heckerBinaryOverlay.Parent = heckerButton
+
+	-- Evil Button
+	local evilButton = Instance.new("TextButton")
+	evilButton.Size = UDim2.new(0, 260, 0, 35)
+	evilButton.Position = UDim2.new(0.5, -130, 0, 140)
+	evilButton.BackgroundColor3 = Color3.fromRGB(40, 10, 10)
+	evilButton.Text = "Evil"
+	evilButton.TextColor3 = Color3.fromRGB(255, 100, 100)
+	evilButton.TextSize = 16
+	evilButton.Font = Enum.Font.GothamBold
+	evilButton.Parent = mainPanel
+
+	local eCorner = Instance.new("UICorner")
+	eCorner.CornerRadius = UDim.new(0, 10)
+	eCorner.Parent = evilButton
+
+	local eStroke = Instance.new("UIStroke")
+	eStroke.Thickness = 2
+	eStroke.Color = Color3.fromRGB(200, 30, 30)
+	eStroke.Parent = evilButton
+
+	-- Cool Button
+	local coolButton = Instance.new("TextButton")
+	coolButton.Size = UDim2.new(0, 260, 0, 35)
+	coolButton.Position = UDim2.new(0.5, -130, 0, 185)
+	coolButton.BackgroundColor3 = Color3.fromRGB(10, 30, 40)
+	coolButton.Text = "Cool"
+	coolButton.TextColor3 = Color3.fromRGB(100, 200, 255)
+	coolButton.TextSize = 16
+	coolButton.Font = Enum.Font.GothamBold
+	coolButton.Parent = mainPanel
+
+	local cCorner = Instance.new("UICorner")
+	cCorner.CornerRadius = UDim.new(0, 10)
+	cCorner.Parent = coolButton
+
+	local cStroke = Instance.new("UIStroke")
+	cStroke.Thickness = 2
+	cStroke.Color = Color3.fromRGB(30, 150, 255)
+	cStroke.Parent = coolButton
+
+	-- Stop Music Button
+	local stopButton = Instance.new("TextButton")
+	stopButton.Size = UDim2.new(0, 260, 0, 40)
+	stopButton.Position = UDim2.new(0.5, -130, 0, 235)
+	stopButton.BackgroundColor3 = Color3.fromRGB(180, 30, 30)
+	stopButton.Text = "Stop Music"
+	stopButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+	stopButton.TextSize = 16
+	stopButton.Font = Enum.Font.GothamBold
+	stopButton.Parent = mainPanel
+
+	local sCorner = Instance.new("UICorner")
+	sCorner.CornerRadius = UDim.new(0, 10)
+	sCorner.Parent = stopButton
+
+	local sStroke = Instance.new("UIStroke")
+	sStroke.Thickness = 2
+	sStroke.Color = Color3.fromRGB(255, 100, 100)
+	sStroke.Parent = stopButton
+
+	-- Intro Toggle at the bottom
+	local toggleContainer = Instance.new("Frame")
+	toggleContainer.Size = UDim2.new(0, 260, 0, 40)
+	toggleContainer.Position = UDim2.new(0.5, -130, 0, 285)
+	toggleContainer.BackgroundTransparency = 1
+	toggleContainer.Parent = mainPanel
+
+	local toggleLabel = Instance.new("TextLabel")
+	toggleLabel.Size = UDim2.new(0, 150, 1, 0)
+	toggleLabel.BackgroundTransparency = 1
+	toggleLabel.Text = "Intro"
+	toggleLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+	toggleLabel.TextSize = 16
+	toggleLabel.Font = Enum.Font.GothamBold
+	toggleLabel.TextXAlignment = Enum.TextXAlignment.Left
+	toggleLabel.Parent = toggleContainer
+
+	local toggleButton = Instance.new("TextButton")
+	toggleButton.Size = UDim2.new(0, 70, 0, 30)
+	toggleButton.Position = UDim2.new(1, -70, 0.5, -15)
+	toggleButton.BackgroundColor3 = Color3.fromRGB(0, 200, 100)
+	toggleButton.Text = "ON"
+	toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+	toggleButton.TextSize = 14
+	toggleButton.Font = Enum.Font.GothamBold
+	toggleButton.Parent = toggleContainer
+
+	local tbCorner = Instance.new("UICorner")
+	tbCorner.CornerRadius = UDim.new(0, 8)
+	tbCorner.Parent = toggleButton
+
+	toggleButton.MouseButton1Click:Connect(function()
+		introEnabled = not introEnabled
+		if introEnabled then
+			toggleButton.BackgroundColor3 = Color3.fromRGB(0, 200, 100)
+			toggleButton.Text = "ON"
+		else
+			toggleButton.BackgroundColor3 = Color3.fromRGB(150, 150, 150)
+			toggleButton.Text = "OFF"
+		end
+	end)
+
+	-- Make Main Panel Draggable
+	local panelDragging = false
+	local panelDragInput, panelDragStart, panelStartPos
+
+	mainPanel.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			panelDragging = true
+			panelDragStart = input.Position
+			panelStartPos = mainPanel.Position
+			
+			input.Changed:Connect(function()
+				if input.UserInputState == Enum.UserInputState.End then
+					panelDragging = false
+				end
+			end)
+		end
+	end)
+
+	mainPanel.InputChanged:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+			panelDragInput = input
+		end
+	end)
+
+	UserInputService.InputChanged:Connect(function(input)
+		if input == panelDragInput and panelDragging then
+			local delta = input.Position - panelDragStart
+			mainPanel.Position = UDim2.new(
+				panelStartPos.X.Scale, 
+				panelStartPos.X.Offset + delta.X, 
+				panelStartPos.Y.Scale, 
+				panelStartPos.Y.Offset + delta.Y
+			)
+		end
+	end)
+
+	-- ==========================================
+	-- 2. ULTRA COOL CINEMATIC INTRO FUNCTION
+	-- ==========================================
+	runCinematicIntro = function(onComplete)
+		local cinematicHolder = Instance.new("Frame")
+		cinematicHolder.Name = "CinematicHolder"
+		cinematicHolder.Size = UDim2.new(1, 0, 1, 0)
+		cinematicHolder.BackgroundTransparency = 1
+		cinematicHolder.Parent = screenGui
+
+		local binarySquareFrame = Instance.new("Frame")
+		binarySquareFrame.Size = UDim2.new(0, 140, 0, 140)
+		binarySquareFrame.Position = UDim2.new(0.5, -70, 0.5, -70)
+		binarySquareFrame.BackgroundTransparency = 1
+		binarySquareFrame.Parent = cinematicHolder
+
+		local bsCorner = Instance.new("UICorner")
+		bsCorner.CornerRadius = UDim.new(0, 30)
+		bsCorner.Parent = binarySquareFrame
+
+		local bsStroke = Instance.new("UIStroke")
+		bsStroke.Thickness = 5
+		bsStroke.Color = Color3.fromRGB(0, 255, 150)
+		bsStroke.Transparency = 1
+		bsStroke.Parent = binarySquareFrame
+
+		local centerSquare = Instance.new("Frame")
+		centerSquare.Size = UDim2.new(0, 140, 0, 140)
+		centerSquare.Position = UDim2.new(0.5, -70, 0.5, -70)
+		centerSquare.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+		centerSquare.BackgroundTransparency = 1
+		centerSquare.Parent = cinematicHolder
+
+		local csCorner = Instance.new("UICorner")
+		csCorner.CornerRadius = UDim.new(0, 30)
+		csCorner.Parent = centerSquare
+
+		local csStroke = Instance.new("UIStroke")
+		csStroke.Thickness = 3
+		csStroke.Color = Color3.fromRGB(0, 255, 200)
+		csStroke.Transparency = 1
+		csStroke.Parent = centerSquare
+
+		local csMusicIcon = Instance.new("TextLabel")
+		csMusicIcon.Size = UDim2.new(1, 0, 1, 0)
+		csMusicIcon.BackgroundTransparency = 1
+		csMusicIcon.Text = "🎵"
+		csMusicIcon.TextSize = 55
+		csMusicIcon.TextTransparency = 1
+		csMusicIcon.Parent = centerSquare
+
+		local subtitleLabel = Instance.new("TextLabel")
+		subtitleLabel.Size = UDim2.new(0, 450, 0, 50)
+		subtitleLabel.Position = UDim2.new(0.5, -225, 0.5, 90)
+		subtitleLabel.BackgroundTransparency = 1
+		subtitleLabel.Text = ""
+		subtitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+		subtitleLabel.TextSize = 22
+		subtitleLabel.Font = Enum.Font.Code
+		subtitleLabel.Parent = cinematicHolder
+
+		task.spawn(function()
+			for i = 1, 50 do
+				local binaryParticle = Instance.new("TextLabel")
+				binaryParticle.Size = UDim2.new(0, 120, 0, 20)
+				binaryParticle.Text = math.random(0,1) .. math.random(0,1) .. math.random(0,1) .. math.random(0,1) .. math.random(0,1) .. math.random(0,1)
+				binaryParticle.TextColor3 = Color3.fromRGB(0, 255, 128)
+				binaryParticle.TextSize = 18
+				binaryParticle.Font = Enum.Font.Code
+				binaryParticle.BackgroundTransparency = 1
+				
+				local side = math.random(1, 4)
+				if side == 1 then
+					binaryParticle.Position = UDim2.new(0, -100, math.random(0.2, 0.8), 0)
+				elseif side == 2 then
+					binaryParticle.Position = UDim2.new(1, 100, math.random(0.2, 0.8), 0)
+				elseif side == 3 then
+					binaryParticle.Position = UDim2.new(math.random(0.2, 0.8), 0, 0, -100)
+				else
+					binaryParticle.Position = UDim2.new(math.random(0.2, 0.8), 0, 1, 100)
+				end
+				
+				binaryParticle.Parent = cinematicHolder
+				TweenService:Create(binaryParticle, TweenInfo.new(0.5, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out), {Position = UDim2.new(0.5, -70, 0.5, 0), TextTransparency = 1}):Play()
+				task.delay(0.5, function() binaryParticle:Destroy() end)
+				task.wait(0.015)
+			end
+
+			TweenService:Create(bsStroke, TweenInfo.new(0.2), {Transparency = 0}):Play()
+			task.wait(0.3)
+			TweenService:Create(bsStroke, TweenInfo.new(0.3), {Transparency = 1}):Play()
+
+			for i = 1, 20 do
+				local decodeStream = Instance.new("TextLabel")
+				decodeStream.Size = UDim2.new(0, 300, 0, 30)
+				decodeStream.Position = UDim2.new(math.random(0.3, 0.6), 0, 0.6, 0)
+				decodeStream.Text = "[DECODING: VERIFIED...]"
+				decodeStream.TextColor3 = Color3.fromRGB(0, 255, 200)
+				decodeStream.TextSize = 14
+				decodeStream.Font = Enum.Font.Code
+				decodeStream.BackgroundTransparency = 1
+				decodeStream.Parent = cinematicHolder
+				TweenService:Create(decodeStream, TweenInfo.new(0.3), {Position = UDim2.new(0.5, -150, 0.5, 90), TextTransparency = 1}):Play()
+				task.delay(0.3, function() decodeStream:Destroy() end)
+				task.wait(0.025)
+			end
+
+			local targetText = "verified script music"
+			for i = 1, #targetText do
+				subtitleLabel.Text = string.sub(targetText, 1, i)
+				task.wait(0.03)
+			end
+
+			TweenService:Create(centerSquare, TweenInfo.new(0.3), {BackgroundTransparency = 0}):Play()
+			TweenService:Create(csStroke, TweenInfo.new(0.3), {Transparency = 0}):Play()
+			TweenService:Create(csMusicIcon, TweenInfo.new(0.3), {TextTransparency = 0}):Play()
+
+			task.wait(0.9)
+
+			TweenService:Create(centerSquare, TweenInfo.new(0.4), {BackgroundTransparency = 1}):Play()
+			TweenService:Create(csStroke, TweenInfo.new(0.4), {Transparency = 1}):Play()
+			TweenService:Create(csMusicIcon, TweenInfo.new(0.4), {TextTransparency = 1}):Play()
+			TweenService:Create(subtitleLabel, TweenInfo.new(0.4), {TextTransparency = 1}):Play()
+
+			task.wait(0.4)
+			cinematicHolder:Destroy()
+
+			if onComplete then
+				onComplete()
+			end
+		end)
+	end
+
+	-- ==========================================
+	-- 1. INITIAL DRAGGABLE TRIGGER BUTTON
+	-- ==========================================
+	createTriggerButton = function()
+		local triggerButton = Instance.new("TextButton")
+		triggerButton.Name = "TriggerButton"
+		triggerButton.Size = UDim2.new(0, 100, 0, 100)
+		triggerButton.Position = UDim2.new(0.5, -50, 0.5, -50)
+		triggerButton.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+		triggerButton.Text = ""
+		triggerButton.AutoButtonColor = false
+		triggerButton.Parent = screenGui
+
+		local corner1 = Instance.new("UICorner")
+		corner1.CornerRadius = UDim.new(0, 24)
+		corner1.Parent = triggerButton
+
+		local uiStroke = Instance.new("UIStroke")
+		uiStroke.Thickness = 4
+		uiStroke.Parent = triggerButton
+
+		local uigradient = Instance.new("UIGradient")
+		uigradient.Color = ColorSequence.new({
+			ColorSequenceKeypoint.new(0.00, Color3.fromRGB(255, 0, 0)),
+			ColorSequenceKeypoint.new(0.20, Color3.fromRGB(255, 127, 0)),
+			ColorSequenceKeypoint.new(0.40, Color3.fromRGB(255, 255, 0)),
+			ColorSequenceKeypoint.new(0.60, Color3.fromRGB(0, 255, 0)),
+			ColorSequenceKeypoint.new(0.80, Color3.fromRGB(0, 0, 255)),
+			ColorSequenceKeypoint.new(1.00, Color3.fromRGB(148, 0, 211))
+		})
+		uigradient.Parent = uiStroke
+
+		jStroke.Color = Color3.fromRGB(255, 255, 255)
+		local jGrad = uigradient:Clone()
+		jGrad.Parent = jStroke
+
+		task.spawn(function()
+			while triggerButton and triggerButton.Parent do
+				uigradient.Rotation = (uigradient.Rotation + 2) % 360
+				RunService.RenderStepped:Wait()
+			end
+		end)
+
+		local musicIcon = Instance.new("TextLabel")
+		musicIcon.Size = UDim2.new(1, 0, 1, 0)
+		musicIcon.BackgroundTransparency = 1
+		musicIcon.Text = "🎵"
+		musicIcon.TextSize = 42
+		musicIcon.Parent = triggerButton
+
+		local dragging = false
+		local dragInput, dragStart, startPos
+		local hasMoved = false
+
+		triggerButton.InputBegan:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+				dragging = true
+				dragStart = input.Position
+				startPos = triggerButton.Position
+				hasMoved = false
+				
+				input.Changed:Connect(function()
+					if input.UserInputState == Enum.UserInputState.End then
+						dragging = false
+					end
+				end)
+			end
+		end)
+
+		triggerButton.InputChanged:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+				dragInput = input
+			end
+		end)
+
+		UserInputService.InputChanged:Connect(function(input)
+			if input == dragInput and dragging then
+				local delta = input.Position - dragStart
+				if delta.Magnitude > 5 then
+					hasMoved = true
+				end
+				triggerButton.Position = UDim2.new(
+					startPos.X.Scale, 
+					startPos.X.Offset + delta.X, 
+					startPos.Y.Scale, 
+					startPos.Y.Offset + delta.Y
+				)
+			end
+		end)
+
+		triggerButton.MouseButton1Click:Connect(function()
+			if hasMoved then return end
+
+			triggerButton:Destroy()
+
+			if introEnabled then
+				runCinematicIntro(function()
+					mainPanel.Visible = true
+				end)
+			else
+				mainPanel.Visible = true
+			end
+		end)
+	end
+
+	createTriggerButton()
+
+	closeButton.MouseButton1Click:Connect(function()
+		mainPanel.Visible = false
+		createTriggerButton()
+	end)
+
+	-- ==========================================
+	-- 4. AUDIO SETUP
+	-- ==========================================
+	local function createSound(id, speed)
+		local sound = Instance.new("Sound")
+		sound.SoundId = "rbxassetid://" .. id
+		sound.PlaybackSpeed = speed
+		sound.Looped = true
+		sound.Volume = 1
+		sound.Parent = SoundService
+		return sound
+	end
+
+	local jollyMusic = createSound("92007372090903", 1.38)
+	local heckerMusic = createSound("101176752608392", 1)
+	local evilMusic = createSound("1838666492", 1)
+	local coolMusic = createSound("130350944345840", 0.7)
+
+	local function stopAllMusic()
+		jollyMusic:Stop()
+		heckerMusic:Stop()
+		evilMusic:Stop()
+		coolMusic:Stop()
+	end
+
+	jollyButton.MouseButton1Click:Connect(function()
+		stopAllMusic()
+		jollyMusic:Play()
+	end)
+
+	heckerButton.MouseButton1Click:Connect(function()
+		stopAllMusic()
+		heckerMusic:Play()
+	end)
+
+	evilButton.MouseButton1Click:Connect(function()
+		stopAllMusic()
+		evilMusic:Play()
+	end)
+
+	coolButton.MouseButton1Click:Connect(function()
+		stopAllMusic()
+		coolMusic:Play()
+	end)
+
+	stopButton.MouseButton1Click:Connect(function()
+		stopAllMusic()
+	end)
+end
+
+-- Automatically apply script to players
+Players.PlayerAdded:Connect(setupGui)
+for _, player in ipairs(Players:GetPlayers()) do
+	task.spawn(function()
+		setupGui(player)
+	end)
+end
