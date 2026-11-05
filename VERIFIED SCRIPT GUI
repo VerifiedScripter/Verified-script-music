@@ -1,0 +1,494 @@
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "HackerIntroGui"
+screenGui.IgnoreGuiInset = true
+screenGui.ResetOnSpawn = false
+screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+screenGui.Parent = playerGui
+
+--------------------------------------------------------------------------------
+-- 1. AUDIO SETUP
+--------------------------------------------------------------------------------
+local startSound = Instance.new("Sound")
+startSound.SoundId = "rbxassetid://104674733570192"
+startSound.Volume = 1
+startSound.Parent = screenGui
+
+local completeSound = Instance.new("Sound")
+completeSound.SoundId = "rbxassetid://124923188934894"
+completeSound.Volume = 1
+completeSound.Parent = screenGui
+
+-- Play start sound immediately
+startSound:Play()
+
+--------------------------------------------------------------------------------
+-- 2. BACKGROUND BINARY CODE EFFECT
+--------------------------------------------------------------------------------
+local bgBinaryFolder = Instance.new("Folder")
+bgBinaryFolder.Name = "BgBinaryFolder"
+bgBinaryFolder.Parent = screenGui
+
+local function createBinaryParticle(spreadOut)
+	if not bgBinaryFolder.Parent then return end
+	local textLabel = Instance.new("TextLabel")
+	textLabel.Size = UDim2.new(0, 100, 0, 30)
+	
+	local startX = math.random(0, 100) / 100
+	local startY = math.random(0, 100) / 100
+	textLabel.Position = UDim2.new(startX, 0, startY, 0)
+	
+	textLabel.BackgroundTransparency = 1
+	textLabel.TextColor3 = Color3.fromRGB(0, 255, 65) -- Matrix green
+	textLabel.TextTransparency = 0.3
+	textLabel.TextSize = math.random(14, 24)
+	textLabel.Font = Enum.Font.Code
+	textLabel.Text = math.random(0, 1) == 1 and "1010101" or "0101010"
+	textLabel.Parent = bgBinaryFolder
+	
+	local targetPos = textLabel.Position
+	if spreadOut then
+		targetPos = UDim2.new(startX + (math.random(-50, 50)/100), 0, startY + (math.random(-50, 50)/100), 0)
+	end
+	
+	TweenService:Create(textLabel, TweenInfo.new(1.5), {
+		Position = targetPos,
+		TextTransparency = 1
+	}):Play()
+	
+	task.delay(1.5, function()
+		if textLabel then textLabel:Destroy() end
+	end)
+end
+
+-- Spawn background binary loop
+local spawningBinary = true
+task.spawn(function()
+	while spawningBinary do
+		createBinaryParticle(false)
+		task.wait(0.08)
+	end
+end)
+
+--------------------------------------------------------------------------------
+-- 3. LOADING SCREEN & FIRST IMAGE (ID: 139619959097679)
+--------------------------------------------------------------------------------
+local centerFrame = Instance.new("Frame")
+centerFrame.Size = UDim2.new(1, 0, 1, 0)
+centerFrame.BackgroundTransparency = 1
+centerFrame.Parent = screenGui
+
+-- Image 1
+local img1 = Instance.new("ImageLabel")
+img1.Size = UDim2.new(0, 150, 0, 150)
+img1.AnchorPoint = Vector2.new(0.5, 0.5)
+img1.Position = UDim2.new(0.5, 0, 0.45, 0)
+img1.BackgroundTransparency = 1
+img1.Image = "rbxassetid://139619959097679"
+img1.Parent = centerFrame
+
+-- Loading Bar Background
+local barBg = Instance.new("Frame")
+barBg.Size = UDim2.new(0, 300, 0, 8)
+barBg.AnchorPoint = Vector2.new(0.5, 0.5)
+barBg.Position = UDim2.new(0.5, 0, 0.6, 0)
+barBg.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+barBg.BorderSizePixel = 0
+barBg.Parent = centerFrame
+
+local barCorner = Instance.new("UICorner")
+barCorner.CornerRadius = UDim.new(1, 0)
+barCorner.Parent = barBg
+
+-- Loading Bar Fill
+local barFill = Instance.new("Frame")
+barFill.Size = UDim2.new(0, 0, 1, 0)
+barFill.BackgroundColor3 = Color3.fromRGB(0, 255, 65)
+barFill.BorderSizePixel = 0
+barFill.Parent = barBg
+
+local fillCorner = Instance.new("UICorner")
+fillCorner.CornerRadius = UDim.new(1, 0)
+fillCorner.Parent = barFill
+
+-- Loading Text
+local loadText = Instance.new("TextLabel")
+loadText.Size = UDim2.new(0, 200, 0, 30)
+loadText.AnchorPoint = Vector2.new(0.5, 0)
+loadText.Position = UDim2.new(0.5, 0, 0.62, 0)
+loadText.BackgroundTransparency = 1
+loadText.TextColor3 = Color3.fromRGB(0, 255, 65)
+loadText.TextSize = 18
+loadText.Font = Enum.Font.Code
+loadText.Text = "Loading..."
+loadText.Parent = centerFrame
+
+-- Simulate Loading to 100%
+for i = 1, 100 do
+	barFill.Size = UDim2.new(i / 100, 0, 1, 0)
+	loadText.Text = "Loading... " .. i .. "%"
+	task.wait(0.02)
+end
+
+-- Play completion sound at 100%
+completeSound:Play()
+
+-- Fade away bar & move image left, show "verified"
+TweenService:Create(barBg, TweenInfo.new(0.5), {BackgroundTransparency = 1}):Play()
+TweenService:Create(barFill, TweenInfo.new(0.5), {BackgroundTransparency = 1}):Play()
+TweenService:Create(loadText, TweenInfo.new(0.5), {TextTransparency = 1}):Play()
+
+task.wait(0.5)
+barBg:Destroy()
+loadText:Destroy()
+
+-- Move image left and display "verified" text side-by-side
+TweenService:Create(img1, TweenInfo.new(0.8, Enum.EasingStyle.Exponential), {
+	Position = UDim2.new(0.35, 0, 0.5, 0)
+}):Play()
+
+local verifiedText = Instance.new("TextLabel")
+verifiedText.Size = UDim2.new(0, 200, 0, 50)
+verifiedText.AnchorPoint = Vector2.new(0, 0.5)
+verifiedText.Position = UDim2.new(0.43, 0, 0.5, 0)
+verifiedText.BackgroundTransparency = 1
+verifiedText.TextColor3 = Color3.fromRGB(0, 255, 65)
+verifiedText.TextSize = 28
+verifiedText.Font = Enum.Font.Code
+verifiedText.Text = "verified"
+verifiedText.TextTransparency = 1
+verifiedText.Parent = centerFrame
+
+TweenService:Create(verifiedText, TweenInfo.new(0.5), {TextTransparency = 0}):Play()
+task.wait(1)
+
+--------------------------------------------------------------------------------
+-- 4. BINARY SPREAD & SECOND EXPLOSION (Image ID: 4845733115)
+--------------------------------------------------------------------------------
+for i = 1, 30 do
+	createBinaryParticle(true)
+end
+
+local rightBinaryContainer = Instance.new("Frame")
+rightBinaryContainer.Size = UDim2.new(0, 200, 0, 200)
+rightBinaryContainer.AnchorPoint = Vector2.new(0.5, 0.5)
+rightBinaryContainer.Position = UDim2.new(0.65, 0, 0.5, 0)
+rightBinaryContainer.BackgroundTransparency = 1
+rightBinaryContainer.Parent = centerFrame
+
+task.wait(0.8)
+
+-- Binary Explosion Effect
+for i = 1, 40 do
+	local p = Instance.new("TextLabel")
+	p.Size = UDim2.new(0, 30, 0, 30)
+	p.Position = UDim2.new(0.65, 0, 0.5, 0)
+	p.BackgroundTransparency = 1
+	p.TextColor3 = Color3.fromRGB(0, 255, 65)
+	p.Font = Enum.Font.Code
+	p.Text = math.random(0, 1) == 1 and "1" or "0"
+	p.Parent = centerFrame
+	
+	local angle = math.random() * math.pi * 2
+	local dist = math.random(50, 250)
+	local targetX = (0.65 * workspace.CurrentCamera.ViewportSize.X) + math.cos(angle) * dist
+	local targetY = (0.5 * workspace.CurrentCamera.ViewportSize.Y) + math.sin(angle) * dist
+	
+	TweenService:Create(p, TweenInfo.new(0.6, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+		Position = UDim2.new(0, targetX, 0, targetY),
+		TextTransparency = 1
+	}):Play()
+	
+	task.delay(0.6, function() p:Destroy() end)
+end
+
+-- Second image and "script" text positioned right next to verified text/image block
+local img2 = Instance.new("ImageLabel")
+img2.Size = UDim2.new(0, 150, 0, 150)
+img2.AnchorPoint = Vector2.new(0, 0.5)
+img2.Position = UDim2.new(0.56, 0, 0.5, 0)
+img2.BackgroundTransparency = 1
+img2.Image = "rbxassetid://4845733115"
+img2.Parent = centerFrame
+
+local scriptText = Instance.new("TextLabel")
+scriptText.Size = UDim2.new(0, 200, 0, 50)
+scriptText.AnchorPoint = Vector2.new(0, 0.5)
+scriptText.Position = UDim2.new(0.64, 0, 0.5, 0)
+scriptText.BackgroundTransparency = 1
+scriptText.TextColor3 = Color3.fromRGB(0, 255, 65)
+scriptText.TextSize = 28
+scriptText.Font = Enum.Font.Code
+scriptText.Text = "script"
+scriptText.Parent = centerFrame
+
+task.wait(1.2)
+
+--------------------------------------------------------------------------------
+-- 5. FINAL EXPLOSION, SPIN & FALL DOWN
+--------------------------------------------------------------------------------
+spawningBinary = false
+bgBinaryFolder:Destroy()
+img1.Visible = false
+verifiedText.Visible = false
+img2.Visible = false
+scriptText.Visible = false
+
+for i = 1, 60 do
+	local particle = Instance.new("Frame")
+	particle.Size = UDim2.new(0, math.random(10, 25), 0, math.random(10, 25))
+	particle.Position = UDim2.new(math.random(20, 80)/100, 0, math.random(20, 80)/100, 0)
+	particle.BackgroundColor3 = math.random(1, 2) == 1 and Color3.fromRGB(0, 255, 65) or Color3.fromRGB(20, 20, 20)
+	particle.BorderSizePixel = 0
+	particle.Parent = screenGui
+	
+	local tweenInfo = TweenInfo.new(1.2, Enum.EasingStyle.Bounce, Enum.EasingDirection.Out)
+	TweenService:Create(particle, tweenInfo, {
+		Rotation = math.random(-360, 360),
+		Position = particle.Position + UDim2.new(math.random(-0.3, 0.3), 0, 1.2, 0),
+		BackgroundTransparency = 1
+	}):Play()
+	
+	task.delay(1.2, function() particle:Destroy() end)
+end
+
+task.wait(0.5)
+centerFrame:Destroy()
+
+--------------------------------------------------------------------------------
+-- 6. HACKER GUI (TOGGLEABLE & DRAGGABLE)
+--------------------------------------------------------------------------------
+local hackerGui = Instance.new("Frame")
+hackerGui.Size = UDim2.new(0, 450, 0, 380) -- Expanded to comfortably fit all three buttons
+hackerGui.AnchorPoint = Vector2.new(0.5, 0.5)
+hackerGui.Position = UDim2.new(0.5, 0, 0.5, 0)
+hackerGui.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+hackerGui.BorderSizePixel = 0
+hackerGui.Active = true
+hackerGui.Parent = screenGui
+
+local guiCorner = Instance.new("UICorner")
+guiCorner.CornerRadius = UDim.new(0, 8)
+guiCorner.Parent = hackerGui
+
+local guiStroke = Instance.new("UIStroke")
+guiStroke.Color = Color3.fromRGB(0, 255, 65)
+guiStroke.Thickness = 2
+guiStroke.Parent = hackerGui
+
+local titleLabel = Instance.new("TextLabel")
+titleLabel.Size = UDim2.new(0, 250, 0, 40)
+titleLabel.Position = UDim2.new(0, 15, 0, 5)
+titleLabel.BackgroundTransparency = 1
+titleLabel.TextColor3 = Color3.fromRGB(0, 255, 65)
+titleLabel.TextSize = 16
+titleLabel.Font = Enum.Font.Code
+titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+titleLabel.Text = "Verified script GUI"
+titleLabel.Parent = hackerGui
+
+local closeButton = Instance.new("TextButton")
+closeButton.Size = UDim2.new(0, 32, 0, 32)
+closeButton.Position = UDim2.new(1, -40, 0, 10)
+closeButton.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+closeButton.AutoButtonColor = false
+closeButton.Text = ""
+closeButton.Parent = hackerGui
+
+local closeCorner = Instance.new("UICorner")
+closeCorner.CornerRadius = UDim.new(0, 6)
+closeCorner.Parent = closeButton
+
+local closeStroke = Instance.new("UIStroke")
+closeStroke.Color = Color3.fromRGB(0, 255, 65)
+closeStroke.Thickness = 1
+closeStroke.Parent = closeButton
+
+local buttonImg = Instance.new("ImageLabel")
+buttonImg.Size = UDim2.new(0.8, 0, 0.8, 0)
+buttonImg.AnchorPoint = Vector2.new(0.5, 0.5)
+buttonImg.Position = UDim2.new(0.5, 0, 0.5, 0)
+buttonImg.BackgroundTransparency = 1
+buttonImg.Image = "rbxassetid://139619959097679"
+buttonImg.Parent = closeButton
+
+local contentLabel = Instance.new("TextLabel")
+contentLabel.Size = UDim2.new(1, -30, 0, 45)
+contentLabel.Position = UDim2.new(0, 15, 0, 45)
+contentLabel.BackgroundTransparency = 1
+contentLabel.TextColor3 = Color3.fromRGB(0, 200, 50)
+contentLabel.TextSize = 14
+contentLabel.Font = Enum.Font.Code
+contentLabel.TextXAlignment = Enum.TextXAlignment.Left
+contentLabel.TextYAlignment = Enum.TextYAlignment.Top
+contentLabel.Text = "> System Initialized...\n> User: " .. player.Name .. "\n> Status: Verified Secure"
+contentLabel.Parent = hackerGui
+
+-- 1. "verified script music" Button
+local musicButton = Instance.new("TextButton")
+musicButton.Size = UDim2.new(1, -30, 0, 35)
+musicButton.Position = UDim2.new(0, 15, 0, 100)
+musicButton.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+musicButton.TextColor3 = Color3.fromRGB(0, 255, 65)
+musicButton.TextSize = 15
+musicButton.Font = Enum.Font.Code
+musicButton.Text = "verified script music"
+musicButton.AutoButtonColor = true
+musicButton.Parent = hackerGui
+
+local musicBtnCorner = Instance.new("UICorner")
+musicBtnCorner.CornerRadius = UDim.new(0, 6)
+musicBtnCorner.Parent = musicButton
+
+local musicBtnStroke = Instance.new("UIStroke")
+musicBtnStroke.Color = Color3.fromRGB(0, 255, 65)
+musicBtnStroke.Thickness = 1
+musicBtnStroke.Parent = musicButton
+
+musicButton.MouseButton1Click:Connect(function()
+	local success, err = pcall(function()
+		loadstring(game:HttpGet("https://raw.githubusercontent.com/VerifiedScripter/Verified-script-music/refs/heads/main/Script"))()
+	end)
+	if not success then
+		warn("Failed to load music script: " .. tostring(err))
+	end
+end)
+
+-- 2. "surfing" Button
+local surfingButton = Instance.new("TextButton")
+surfingButton.Size = UDim2.new(1, -30, 0, 35)
+surfingButton.Position = UDim2.new(0, 15, 0, 145)
+surfingButton.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+surfingButton.TextColor3 = Color3.fromRGB(0, 255, 65)
+surfingButton.TextSize = 15
+surfingButton.Font = Enum.Font.Code
+surfingButton.Text = "surfing"
+surfingButton.AutoButtonColor = true
+surfingButton.Parent = hackerGui
+
+local surfingBtnCorner = Instance.new("UICorner")
+surfingBtnCorner.CornerRadius = UDim.new(0, 6)
+surfingBtnCorner.Parent = surfingButton
+
+local surfingBtnStroke = Instance.new("UIStroke")
+surfingBtnStroke.Color = Color3.fromRGB(0, 255, 65)
+surfingBtnStroke.Thickness = 1
+surfingBtnStroke.Parent = surfingButton
+
+surfingButton.MouseButton1Click:Connect(function()
+	local success, err = pcall(function()
+		loadstring(game:HttpGet("https://raw.githubusercontent.com/VerifiedScripter/Verified-script-music/refs/heads/main/VSSurfing"))()
+	end)
+	if not success then
+		warn("Failed to load surfing script: " .. tostring(err))
+	end
+end)
+
+-- 3. "custom shiftlock & crosshair" Button
+local shiftlockButton = Instance.new("TextButton")
+shiftlockButton.Size = UDim2.new(1, -30, 0, 35)
+shiftlockButton.Position = UDim2.new(0, 15, 0, 190)
+shiftlockButton.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+shiftlockButton.TextColor3 = Color3.fromRGB(0, 255, 65)
+shiftlockButton.TextSize = 15
+shiftlockButton.Font = Enum.Font.Code
+shiftlockButton.Text = "custom shiftlock & crosshair"
+shiftlockButton.AutoButtonColor = true
+shiftlockButton.Parent = hackerGui
+
+local shiftlockBtnCorner = Instance.new("UICorner")
+shiftlockBtnCorner.CornerRadius = UDim.new(0, 6)
+shiftlockBtnCorner.Parent = shiftlockButton
+
+local shiftlockBtnStroke = Instance.new("UIStroke")
+shiftlockBtnStroke.Color = Color3.fromRGB(0, 255, 65)
+shiftlockBtnStroke.Thickness = 1
+shiftlockBtnStroke.Parent = shiftlockButton
+
+shiftlockButton.MouseButton1Click:Connect(function()
+	local success, err = pcall(function()
+		loadstring(game:HttpGet("https://raw.githubusercontent.com/VerifiedScripter/Verified-script-music/refs/heads/main/Custom%20shiftlock%20%26%20crosshair"))()
+	end)
+	if not success then
+		warn("Failed to load shiftlock script: " .. tostring(err))
+	end
+end)
+
+-- Dragging Helper Function for UI Elements
+local function makeDraggable(frame)
+	local dragging, dragInput, dragStart, startPos
+
+	frame.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			dragging = true
+			dragStart = input.Position
+			startPos = frame.Position
+			
+			input.Changed:Connect(function()
+				if input.UserInputState == Enum.UserInputState.End then
+					dragging = false
+				end
+			end)
+		end
+	end)
+
+	frame.InputChanged:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+			dragInput = input
+		end
+	end)
+
+	RunService.RenderStepped:Connect(function()
+		if dragging and dragInput then
+			local delta = dragInput.Position - dragStart
+			frame.Position = UDim2.new(
+				startPos.X.Scale, 
+				startPos.X.Offset + delta.X, 
+				startPos.Y.Scale, 
+				startPos.Y.Offset + delta.Y
+			)
+		end
+	end)
+end
+
+-- Make the main Hacker GUI draggable
+makeDraggable(hackerGui)
+
+-- Toggle / Re-open logic when close button is pressed
+closeButton.MouseButton1Click:Connect(function()
+	if hackerGui.Visible then
+		hackerGui.Visible = false
+		
+		-- Create a floating draggable reopen button
+		local openButton = Instance.new("ImageButton")
+		openButton.Name = "OpenButton"
+		openButton.Size = UDim2.new(0, 45, 0, 45)
+		openButton.Position = UDim2.new(0, 20, 0.8, 0)
+		openButton.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+		openButton.Image = "rbxassetid://139619959097679"
+		openButton.Parent = screenGui
+		
+		local openCorner = Instance.new("UICorner")
+		openCorner.CornerRadius = UDim.new(0, 8)
+		openCorner.Parent = openButton
+		
+		local openStroke = Instance.new("UIStroke")
+		openStroke.Color = Color3.fromRGB(0, 255, 65)
+		openStroke.Thickness = 2
+		openStroke.Parent = openButton
+		
+		-- Make the floating button draggable too!
+		makeDraggable(openButton)
+		
+		openButton.MouseButton1Click:Connect(function()
+			hackerGui.Visible = true
+			openButton:Destroy()
+		end)
+	end
+end)
