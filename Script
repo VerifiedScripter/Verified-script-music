@@ -27,12 +27,12 @@ local function setupGui(player)
 	local createTriggerButton, runCinematicIntro
 
 	-- ==========================================
-	-- 3. MAIN GUI SETUP
+	-- 3. MAIN GUI SETUP (Expanded for 10 Songs)
 	-- ==========================================
 	local mainPanel = Instance.new("Frame")
 	mainPanel.Name = "MainPanel"
-	mainPanel.Size = UDim2.new(0, 320, 0, 410) -- Expanded to fit all 4 songs
-	mainPanel.Position = UDim2.new(0.5, -160, 0.5, -205)
+	mainPanel.Size = UDim2.new(0, 320, 0, 580)
+	mainPanel.Position = UDim2.new(0.5, -160, 0.5, -290)
 	mainPanel.BackgroundColor3 = Color3.fromRGB(15, 15, 20)
 	mainPanel.Visible = false
 	mainPanel.Parent = screenGui
@@ -72,44 +72,53 @@ local function setupGui(player)
 	cbCorner.CornerRadius = UDim.new(0, 8)
 	cbCorner.Parent = closeButton
 
-	-- Jolly Button
-	local jollyButton = Instance.new("TextButton")
-	jollyButton.Size = UDim2.new(0, 260, 0, 35)
-	jollyButton.Position = UDim2.new(0.5, -130, 0, 50)
-	jollyButton.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
-	jollyButton.Text = "Jolly"
-	jollyButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-	jollyButton.TextSize = 16
-	jollyButton.Font = Enum.Font.GothamBold
-	jollyButton.Parent = mainPanel
+	-- Helper function to create song buttons
+	local function createSongButton(name, yPos, bgColor, textColor, customStrokeColor)
+		local btn = Instance.new("TextButton")
+		btn.Size = UDim2.new(0, 260, 0, 32)
+		btn.Position = UDim2.new(0.5, -130, 0, yPos)
+		btn.BackgroundColor3 = bgColor
+		btn.Text = name
+		btn.TextColor3 = textColor
+		btn.TextSize = 15
+		btn.Font = Enum.Font.GothamBold
+		btn.Parent = mainPanel
 
-	local jCorner = Instance.new("UICorner")
-	jCorner.CornerRadius = UDim.new(0, 10)
-	jCorner.Parent = jollyButton
+		local corner = Instance.new("UICorner")
+		corner.CornerRadius = UDim.new(0, 8)
+		corner.Parent = btn
 
-	local jStroke = Instance.new("UIStroke")
-	jStroke.Thickness = 2
-	jStroke.Parent = jollyButton
+		local stroke = Instance.new("UIStroke")
+		stroke.Thickness = 2
+		stroke.Color = customStrokeColor or Color3.fromRGB(60, 60, 80)
+		stroke.Parent = btn
 
-	-- Hecker Button
-	local heckerButton = Instance.new("TextButton")
-	heckerButton.Size = UDim2.new(0, 260, 0, 35)
-	heckerButton.Position = UDim2.new(0.5, -130, 0, 95)
-	heckerButton.BackgroundColor3 = Color3.fromRGB(30, 15, 15)
-	heckerButton.Text = "Hecker"
-	heckerButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-	heckerButton.TextSize = 16
-	heckerButton.Font = Enum.Font.GothamBold
-	heckerButton.Parent = mainPanel
+		return btn
+	end
 
-	local hCorner = Instance.new("UICorner")
-	hCorner.CornerRadius = UDim.new(0, 10)
-	hCorner.Parent = heckerButton
+	-- Create Song Buttons in order
+	local jollyButton = createSongButton("Jolly", 45, Color3.fromRGB(30, 30, 40), Color3.fromRGB(255, 255, 255))
+	local heckerButton = createSongButton("Hecker", 82, Color3.fromRGB(30, 15, 15), Color3.fromRGB(255, 255, 255))
+	local evilButton = createSongButton("Evil", 119, Color3.fromRGB(40, 10, 10), Color3.fromRGB(255, 100, 100), Color3.fromRGB(200, 30, 30))
+	local coolButton = createSongButton("Cool", 156, Color3.fromRGB(10, 30, 40), Color3.fromRGB(100, 200, 255), Color3.fromRGB(30, 150, 255))
+	local pigeonButton = createSongButton("one little pigeon", 193, Color3.fromRGB(30, 35, 30), Color3.fromRGB(220, 255, 220), Color3.fromRGB(80, 180, 80))
+	
+	-- ANDROMEDA (Galaxy-ish theme)
+	local andromedaButton = createSongButton("ANDROMEDA", 230, Color3.fromRGB(20, 10, 35), Color3.fromRGB(230, 180, 255), Color3.fromRGB(170, 50, 255))
+	local andromedaGrad = Instance.new("UIGradient")
+	andromedaGrad.Color = ColorSequence.new({
+		ColorSequenceKeypoint.new(0.00, Color3.fromRGB(100, 20, 180)),
+		ColorSequenceKeypoint.new(0.50, Color3.fromRGB(40, 10, 80)),
+		ColorSequenceKeypoint.new(1.00, Color3.fromRGB(180, 50, 150))
+	})
+	andromedaGrad.Parent = andromedaButton
 
-	local hStroke = Instance.new("UIStroke")
-	hStroke.Thickness = 2.5
-	hStroke.Parent = heckerButton
+	local kitButton = createSongButton("KIT", 267, Color3.fromRGB(35, 30, 20), Color3.fromRGB(255, 230, 150), Color3.fromRGB(200, 150, 50))
+	local musorButton = createSongButton("musor drop", 304, Color3.fromRGB(25, 25, 35), Color3.fromRGB(200, 220, 255), Color3.fromRGB(100, 130, 200))
+	local sorryButton = createSongButton("S0RRYF0RMYD3ATH", 341, Color3.fromRGB(20, 20, 20), Color3.fromRGB(255, 100, 100), Color3.fromRGB(150, 30, 30))
+	local sheldonButton = createSongButton("sheldon lee cooper", 378, Color3.fromRGB(35, 25, 35), Color3.fromRGB(255, 200, 250), Color3.fromRGB(200, 100, 200))
 
+	-- Hecker Binary Aura Gradient Setup
 	local hGradient = Instance.new("UIGradient")
 	hGradient.Color = ColorSequence.new({
 		ColorSequenceKeypoint.new(0.00, Color3.fromRGB(255, 0, 0)),
@@ -118,7 +127,8 @@ local function setupGui(player)
 		ColorSequenceKeypoint.new(0.70, Color3.fromRGB(255, 0, 0)),
 		ColorSequenceKeypoint.new(1.00, Color3.fromRGB(100, 0, 0))
 	})
-	hGradient.Parent = hStroke
+	local hStroke = heckerButton:FindFirstChildOfClass("UIStroke")
+	if hStroke then hGradient.Parent = hStroke end
 
 	task.spawn(function()
 		while heckerButton and heckerButton.Parent do
@@ -137,50 +147,10 @@ local function setupGui(player)
 	heckerBinaryOverlay.Font = Enum.Font.Code
 	heckerBinaryOverlay.Parent = heckerButton
 
-	-- Evil Button
-	local evilButton = Instance.new("TextButton")
-	evilButton.Size = UDim2.new(0, 260, 0, 35)
-	evilButton.Position = UDim2.new(0.5, -130, 0, 140)
-	evilButton.BackgroundColor3 = Color3.fromRGB(40, 10, 10)
-	evilButton.Text = "Evil"
-	evilButton.TextColor3 = Color3.fromRGB(255, 100, 100)
-	evilButton.TextSize = 16
-	evilButton.Font = Enum.Font.GothamBold
-	evilButton.Parent = mainPanel
-
-	local eCorner = Instance.new("UICorner")
-	eCorner.CornerRadius = UDim.new(0, 10)
-	eCorner.Parent = evilButton
-
-	local eStroke = Instance.new("UIStroke")
-	eStroke.Thickness = 2
-	eStroke.Color = Color3.fromRGB(200, 30, 30)
-	eStroke.Parent = evilButton
-
-	-- Cool Button
-	local coolButton = Instance.new("TextButton")
-	coolButton.Size = UDim2.new(0, 260, 0, 35)
-	coolButton.Position = UDim2.new(0.5, -130, 0, 185)
-	coolButton.BackgroundColor3 = Color3.fromRGB(10, 30, 40)
-	coolButton.Text = "Cool"
-	coolButton.TextColor3 = Color3.fromRGB(100, 200, 255)
-	coolButton.TextSize = 16
-	coolButton.Font = Enum.Font.GothamBold
-	coolButton.Parent = mainPanel
-
-	local cCorner = Instance.new("UICorner")
-	cCorner.CornerRadius = UDim.new(0, 10)
-	cCorner.Parent = coolButton
-
-	local cStroke = Instance.new("UIStroke")
-	cStroke.Thickness = 2
-	cStroke.Color = Color3.fromRGB(30, 150, 255)
-	cStroke.Parent = coolButton
-
 	-- Stop Music Button
 	local stopButton = Instance.new("TextButton")
-	stopButton.Size = UDim2.new(0, 260, 0, 40)
-	stopButton.Position = UDim2.new(0.5, -130, 0, 235)
+	stopButton.Size = UDim2.new(0, 260, 0, 35)
+	stopButton.Position = UDim2.new(0.5, -130, 0, 420)
 	stopButton.BackgroundColor3 = Color3.fromRGB(180, 30, 30)
 	stopButton.Text = "Stop Music"
 	stopButton.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -189,7 +159,7 @@ local function setupGui(player)
 	stopButton.Parent = mainPanel
 
 	local sCorner = Instance.new("UICorner")
-	sCorner.CornerRadius = UDim.new(0, 10)
+	sCorner.CornerRadius = UDim.new(0, 8)
 	sCorner.Parent = stopButton
 
 	local sStroke = Instance.new("UIStroke")
@@ -199,8 +169,8 @@ local function setupGui(player)
 
 	-- Intro Toggle at the bottom
 	local toggleContainer = Instance.new("Frame")
-	toggleContainer.Size = UDim2.new(0, 260, 0, 40)
-	toggleContainer.Position = UDim2.new(0.5, -130, 0, 285)
+	toggleContainer.Size = UDim2.new(0, 260, 0, 35)
+	toggleContainer.Position = UDim2.new(0.5, -130, 0, 465)
 	toggleContainer.BackgroundTransparency = 1
 	toggleContainer.Parent = mainPanel
 
@@ -215,8 +185,8 @@ local function setupGui(player)
 	toggleLabel.Parent = toggleContainer
 
 	local toggleButton = Instance.new("TextButton")
-	toggleButton.Size = UDim2.new(0, 70, 0, 30)
-	toggleButton.Position = UDim2.new(1, -70, 0.5, -15)
+	toggleButton.Size = UDim2.new(0, 70, 0, 28)
+	toggleButton.Position = UDim2.new(1, -70, 0.5, -14)
 	toggleButton.BackgroundColor3 = Color3.fromRGB(0, 200, 100)
 	toggleButton.Text = "ON"
 	toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -225,7 +195,7 @@ local function setupGui(player)
 	toggleButton.Parent = toggleContainer
 
 	local tbCorner = Instance.new("UICorner")
-	tbCorner.CornerRadius = UDim.new(0, 8)
+	tbCorner.CornerRadius = UDim.new(0, 6)
 	tbCorner.Parent = toggleButton
 
 	toggleButton.MouseButton1Click:Connect(function()
@@ -440,9 +410,12 @@ local function setupGui(player)
 		})
 		uigradient.Parent = uiStroke
 
-		jStroke.Color = Color3.fromRGB(255, 255, 255)
-		local jGrad = uigradient:Clone()
-		jGrad.Parent = jStroke
+		local jStroke = jollyButton:FindFirstChildOfClass("UIStroke")
+		if jStroke then
+			jStroke.Color = Color3.fromRGB(255, 255, 255)
+			local jGrad = uigradient:Clone()
+			jGrad.Parent = jStroke
+		end
 
 		task.spawn(function()
 			while triggerButton and triggerButton.Parent do
@@ -521,48 +494,108 @@ local function setupGui(player)
 	end)
 
 	-- ==========================================
-	-- 4. AUDIO SETUP
+	-- 4. AUDIO SETUP (ANDROMEDA Volume set to 7)
 	-- ==========================================
-	local function createSound(id, speed)
+	local function createSound(id, speed, startTime, volume)
 		local sound = Instance.new("Sound")
 		sound.SoundId = "rbxassetid://" .. id
 		sound.PlaybackSpeed = speed
 		sound.Looped = true
-		sound.Volume = 1
+		sound.Volume = volume or 1
 		sound.Parent = SoundService
+		
+		if startTime and startTime > 0 then
+			sound.TimePosition = startTime
+		end
+		
 		return sound
 	end
 
-	local jollyMusic = createSound("92007372090903", 1.38)
-	local heckerMusic = createSound("101176752608392", 1)
-	local evilMusic = createSound("1838666492", 1)
-	local coolMusic = createSound("130350944345840", 0.7)
+	-- Originals (Volume 1)
+	local jollyMusic = createSound("92007372090903", 1.38, 0, 1)
+	local heckerMusic = createSound("101176752608392", 1, 0, 1)
+	local evilMusic = createSound("1838666492", 1, 0, 1)
+	local coolMusic = createSound("130350944345840", 0.7, 0, 1)
+
+	-- New 6 Songs (ANDROMEDA volume set to 7, others set to 2.5)
+	local pigeonMusic = createSound("136167312350215", 1, 0, 2.5)
+	local andromedaMusic = createSound("138375619167649", 1, 0, 7) -- Boosted to 7 as requested!
+	local kitMusic = createSound("85598267402579", 1, 5.7, 2.5)
+	local musorMusic = createSound("99789469646939", 1, 0, 2.5)
+	local sorryMusic = createSound("97830617915652", 1, 28, 2.5)
+	local sheldonMusic = createSound("75976032525375", 1, 0, 2.5)
 
 	local function stopAllMusic()
 		jollyMusic:Stop()
 		heckerMusic:Stop()
 		evilMusic:Stop()
 		coolMusic:Stop()
+		pigeonMusic:Stop()
+		andromedaMusic:Stop()
+		kitMusic:Stop()
+		musorMusic:Stop()
+		sorryMusic:Stop()
+		sheldonMusic:Stop()
 	end
 
 	jollyButton.MouseButton1Click:Connect(function()
 		stopAllMusic()
+		jollyMusic.TimePosition = 0
 		jollyMusic:Play()
 	end)
 
 	heckerButton.MouseButton1Click:Connect(function()
 		stopAllMusic()
+		heckerMusic.TimePosition = 0
 		heckerMusic:Play()
 	end)
 
 	evilButton.MouseButton1Click:Connect(function()
 		stopAllMusic()
+		evilMusic.TimePosition = 0
 		evilMusic:Play()
 	end)
 
 	coolButton.MouseButton1Click:Connect(function()
 		stopAllMusic()
+		coolMusic.TimePosition = 0
 		coolMusic:Play()
+	end)
+
+	pigeonButton.MouseButton1Click:Connect(function()
+		stopAllMusic()
+		pigeonMusic.TimePosition = 0
+		pigeonMusic:Play()
+	end)
+
+	andromedaButton.MouseButton1Click:Connect(function()
+		stopAllMusic()
+		andromedaMusic.TimePosition = 0
+		andromedaMusic:Play()
+	end)
+
+	kitButton.MouseButton1Click:Connect(function()
+		stopAllMusic()
+		kitMusic.TimePosition = 5.7
+		kitMusic:Play()
+	end)
+
+	musorButton.MouseButton1Click:Connect(function()
+		stopAllMusic()
+		musorMusic.TimePosition = 0
+		musorMusic:Play()
+	end)
+
+	sorryButton.MouseButton1Click:Connect(function()
+		stopAllMusic()
+		sorryMusic.TimePosition = 28
+		sorryMusic:Play()
+	end)
+
+	sheldonButton.MouseButton1Click:Connect(function()
+		stopAllMusic()
+		sheldonMusic.TimePosition = 0
+		sheldonMusic:Play()
 	end)
 
 	stopButton.MouseButton1Click:Connect(function()
