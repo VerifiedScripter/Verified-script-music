@@ -1,0 +1,488 @@
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+local introGui = Instance.new("ScreenGui")
+introGui.Name = "HackerIntroGui"
+introGui.IgnoreGuiInset = true
+introGui.ResetOnSpawn = false
+introGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+introGui.Parent = playerGui
+
+local startSound = Instance.new("Sound")
+startSound.SoundId = "rbxassetid://104674733570192"
+startSound.Volume = 1
+startSound.Parent = introGui
+
+local completeSound = Instance.new("Sound")
+completeSound.SoundId = "rbxassetid://124923188934894"
+completeSound.Volume = 1
+completeSound.Parent = introGui
+
+startSound:Play()
+
+local bgBinaryFolder = Instance.new("Folder")
+bgBinaryFolder.Name = "BgBinaryFolder"
+bgBinaryFolder.Parent = introGui
+
+local function createBinaryParticle(spreadOut)
+	if not bgBinaryFolder.Parent then return end
+	local textLabel = Instance.new("TextLabel")
+	textLabel.Size = UDim2.new(0, 100, 0, 30)
+	
+	local startX = math.random(0, 100) / 100
+	local startY = math.random(0, 100) / 100
+	textLabel.Position = UDim2.new(startX, 0, startY, 0)
+	
+	textLabel.BackgroundTransparency = 1
+	textLabel.TextColor3 = Color3.fromRGB(0, 255, 65)
+	textLabel.TextTransparency = 0.3
+	textLabel.TextSize = math.random(14, 24)
+	textLabel.Font = Enum.Font.Code
+	textLabel.Text = math.random(0, 1) == 1 and "1010101" or "0101010"
+	textLabel.Parent = bgBinaryFolder
+	
+	local targetPos = textLabel.Position
+	if spreadOut then
+		targetPos = UDim2.new(startX + (math.random(-50, 50)/100), 0, startY + (math.random(-50, 50)/100), 0)
+	end
+	
+	TweenService:Create(textLabel, TweenInfo.new(1.5), {
+		Position = targetPos,
+		TextTransparency = 1
+	}):Play()
+	
+	task.delay(1.5, function()
+		if textLabel then textLabel:Destroy() end
+	end)
+end
+
+local spawningBinary = true
+task.spawn(function()
+	while spawningBinary do
+		createBinaryParticle(false)
+		task.wait(0.08)
+	end
+end)
+
+local centerFrame = Instance.new("Frame")
+centerFrame.Size = UDim2.new(1, 0, 1, 0)
+centerFrame.BackgroundTransparency = 1
+centerFrame.Parent = introGui
+
+local img1 = Instance.new("ImageLabel")
+img1.Size = UDim2.new(0, 150, 0, 150)
+img1.AnchorPoint = Vector2.new(0.5, 0.5)
+img1.Position = UDim2.new(0.5, 0, 0.45, 0)
+img1.BackgroundTransparency = 1
+img1.Image = "rbxassetid://139619959097679"
+img1.Parent = centerFrame
+
+local barBg = Instance.new("Frame")
+barBg.Size = UDim2.new(0, 300, 0, 8)
+barBg.AnchorPoint = Vector2.new(0.5, 0.5)
+barBg.Position = UDim2.new(0.5, 0, 0.6, 0)
+barBg.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+barBg.BorderSizePixel = 0
+barBg.Parent = centerFrame
+
+local barCorner = Instance.new("UICorner")
+barCorner.CornerRadius = UDim.new(1, 0)
+barCorner.Parent = barBg
+
+local barFill = Instance.new("Frame")
+barFill.Size = UDim2.new(0, 0, 1, 0)
+barFill.BackgroundColor3 = Color3.fromRGB(0, 255, 65)
+barFill.BorderSizePixel = 0
+barFill.Parent = barBg
+
+local fillCorner = Instance.new("UICorner")
+fillCorner.CornerRadius = UDim.new(1, 0)
+fillCorner.Parent = barFill
+
+local loadText = Instance.new("TextLabel")
+loadText.Size = UDim2.new(0, 200, 0, 30)
+loadText.AnchorPoint = Vector2.new(0.5, 0)
+loadText.Position = UDim2.new(0.5, 0, 0.62, 0)
+loadText.BackgroundTransparency = 1
+loadText.TextColor3 = Color3.fromRGB(0, 255, 65)
+loadText.TextSize = 18
+loadText.Font = Enum.Font.Code
+loadText.Text = "Loading..."
+loadText.Parent = centerFrame
+
+for i = 1, 100 do
+	barFill.Size = UDim2.new(i / 100, 0, 1, 0)
+	loadText.Text = "Loading... " .. i .. "%"
+	task.wait(0.02)
+end
+
+completeSound:Play()
+
+TweenService:Create(barBg, TweenInfo.new(0.5), {BackgroundTransparency = 1}):Play()
+TweenService:Create(barFill, TweenInfo.new(0.5), {BackgroundTransparency = 1}):Play()
+TweenService:Create(loadText, TweenInfo.new(0.5), {TextTransparency = 1}):Play()
+
+task.wait(0.5)
+barBg:Destroy()
+loadText:Destroy()
+
+TweenService:Create(img1, TweenInfo.new(0.8, Enum.EasingStyle.Exponential), {
+	Position = UDim2.new(0.35, 0, 0.5, 0)
+}):Play()
+
+local verifiedText = Instance.new("TextLabel")
+verifiedText.Size = UDim2.new(0, 200, 0, 50)
+verifiedText.AnchorPoint = Vector2.new(0, 0.5)
+verifiedText.Position = UDim2.new(0.43, 0, 0.5, 0)
+verifiedText.BackgroundTransparency = 1
+verifiedText.TextColor3 = Color3.fromRGB(0, 255, 65)
+verifiedText.TextSize = 28
+verifiedText.Font = Enum.Font.Code
+verifiedText.Text = "verified"
+verifiedText.TextTransparency = 1
+verifiedText.Parent = centerFrame
+
+TweenService:Create(verifiedText, TweenInfo.new(0.5), {TextTransparency = 0}):Play()
+task.wait(1)
+
+for i = 1, 30 do
+	createBinaryParticle(true)
+end
+
+local rightBinaryContainer = Instance.new("Frame")
+rightBinaryContainer.Size = UDim2.new(0, 200, 0, 200)
+rightBinaryContainer.AnchorPoint = Vector2.new(0.5, 0.5)
+rightBinaryContainer.Position = UDim2.new(0.65, 0, 0.5, 0)
+rightBinaryContainer.BackgroundTransparency = 1
+rightBinaryContainer.Parent = centerFrame
+
+task.wait(0.8)
+
+for i = 1, 40 do
+	local p = Instance.new("TextLabel")
+	p.Size = UDim2.new(0, 30, 0, 30)
+	p.Position = UDim2.new(0.65, 0, 0.5, 0)
+	p.BackgroundTransparency = 1
+	p.TextColor3 = Color3.fromRGB(0, 255, 65)
+	p.Font = Enum.Font.Code
+	p.Text = math.random(0, 1) == 1 and "1" or "0"
+	p.Parent = centerFrame
+	
+	local angle = math.random() * math.pi * 2
+	local dist = math.random(50, 250)
+	local targetX = (0.65 * workspace.CurrentCamera.ViewportSize.X) + math.cos(angle) * dist
+	local targetY = (0.5 * workspace.CurrentCamera.ViewportSize.Y) + math.sin(angle) * dist
+	
+	TweenService:Create(p, TweenInfo.new(0.6, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+		Position = UDim2.new(0, targetX, 0, targetY),
+		TextTransparency = 1
+	}):Play()
+	
+	task.delay(0.6, function() p:Destroy() end)
+end
+
+local img2 = Instance.new("ImageLabel")
+img2.Size = UDim2.new(0, 150, 0, 150)
+img2.AnchorPoint = Vector2.new(0, 0.5)
+img2.Position = UDim2.new(0.56, 0, 0.5, 0)
+img2.BackgroundTransparency = 1
+img2.Image = "rbxassetid://4845733115"
+img2.Parent = centerFrame
+
+local scriptText = Instance.new("TextLabel")
+scriptText.Size = UDim2.new(0, 200, 0, 50)
+scriptText.AnchorPoint = Vector2.new(0, 0.5)
+scriptText.Position = UDim2.new(0.64, 0, 0.5, 0)
+scriptText.BackgroundTransparency = 1
+scriptText.TextColor3 = Color3.fromRGB(0, 255, 65)
+scriptText.TextSize = 28
+scriptText.Font = Enum.Font.Code
+scriptText.Text = "script"
+scriptText.Parent = centerFrame
+
+task.wait(1.2)
+
+spawningBinary = false
+bgBinaryFolder:Destroy()
+img1.Visible = false
+verifiedText.Visible = false
+img2.Visible = false
+scriptText.Visible = false
+
+for i = 1, 60 do
+	local particle = Instance.new("Frame")
+	particle.Size = UDim2.new(0, math.random(10, 25), 0, math.random(10, 25))
+	particle.Position = UDim2.new(math.random(20, 80)/100, 0, math.random(20, 80)/100, 0)
+	particle.BackgroundColor3 = math.random(1, 2) == 1 and Color3.fromRGB(0, 255, 65) or Color3.fromRGB(20, 20, 20)
+	particle.BorderSizePixel = 0
+	particle.Parent = introGui
+	
+	local tweenInfo = TweenInfo.new(1.2, Enum.EasingStyle.Bounce, Enum.EasingDirection.Out)
+	TweenService:Create(particle, tweenInfo, {
+		Rotation = math.random(-360, 360),
+		Position = particle.Position + UDim2.new(math.random(-0.3, 0.3), 0, 1.2, 0),
+		BackgroundTransparency = 1
+	}):Play()
+	
+	task.delay(1.2, function() particle:Destroy() end)
+end
+
+task.wait(0.5)
+introGui:Destroy()
+
+local DEFAULT_IMAGE_ID = "rbxassetid://6937742258"
+
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "CustomShiftlockGui"
+screenGui.ResetOnSpawn = false
+screenGui.IgnoreGuiInset = true
+screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+screenGui.Parent = playerGui
+
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "MainFrame"
+mainFrame.Size = UDim2.new(0, 320, 0, 260)
+mainFrame.Position = UDim2.new(0.5, -160, 0.5, -130)
+mainFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 40)
+mainFrame.BorderSizePixel = 0
+mainFrame.Parent = screenGui
+
+local mainCorner = Instance.new("UICorner")
+mainCorner.CornerRadius = UDim.new(0, 16)
+mainCorner.Parent = mainFrame
+
+local titleLabel = Instance.new("TextLabel")
+titleLabel.Name = "TitleLabel"
+titleLabel.Size = UDim2.new(1, -50, 0, 40)
+titleLabel.Position = UDim2.new(0, 15, 0, 5)
+titleLabel.BackgroundTransparency = 1
+titleLabel.Font = Enum.Font.GothamBold
+titleLabel.Text = "custom shiftlock & crosshair"
+titleLabel.TextColor3 = Color3.fromRGB(240, 240, 240)
+titleLabel.TextSize = 14
+titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+titleLabel.Parent = mainFrame
+
+local closeButton = Instance.new("TextButton")
+closeButton.Name = "CloseButton"
+closeButton.Size = UDim2.new(0, 30, 0, 30)
+closeButton.Position = UDim2.new(1, -35, 0, 10)
+closeButton.BackgroundColor3 = Color3.fromRGB(50, 50, 58)
+closeButton.Font = Enum.Font.GothamBold
+closeButton.Text = "×"
+closeButton.TextColor3 = Color3.fromRGB(200, 200, 200)
+closeButton.TextSize = 20
+closeButton.Parent = mainFrame
+
+local closeCorner = Instance.new("UICorner")
+closeCorner.CornerRadius = UDim.new(0, 8)
+closeCorner.Parent = closeButton
+
+local openButton = Instance.new("ImageButton")
+openButton.Name = "OpenButton"
+openButton.Size = UDim2.new(0, 50, 0, 50)
+openButton.Position = UDim2.new(0, 20, 0, 20)
+openButton.BackgroundColor3 = Color3.fromRGB(35, 35, 40)
+openButton.Visible = false
+openButton.Image = "rbxassetid://15911231575"
+openButton.Parent = screenGui
+
+local openCorner = Instance.new("UICorner")
+openCorner.CornerRadius = UDim.new(0, 12)
+openCorner.Parent = openButton
+
+local function makeDraggable(frame)
+	local dragging, dragInput, dragStart, startPos
+
+	frame.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			dragging = true
+			dragStart = input.Position
+			startPos = frame.Position
+
+			input.Changed:Connect(function()
+				if input.UserInputState == Enum.UserInputState.End then
+					dragging = false
+				end
+			end)
+		end
+	end)
+
+	frame.InputChanged:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+			dragInput = input
+		end
+	end)
+
+	UserInputService.InputChanged:Connect(function(input)
+		if input == dragInput and dragging then
+			local delta = input.Position - dragStart
+			frame.Position = UDim2.new(
+				startPos.X.Scale, 
+				startPos.X.Offset + delta.X, 
+				startPos.Y.Scale, 
+				startPos.Y.Offset + delta.Y
+			)
+		end
+	end)
+end
+
+makeDraggable(mainFrame)
+
+local function createInputRow(name, labelText, defaultText, orderIndex)
+	local label = Instance.new("TextLabel")
+	label.Size = UDim2.new(1, -30, 0, 18)
+	label.Position = UDim2.new(0, 15, 0, 45 + (orderIndex * 65))
+	label.BackgroundTransparency = 1
+	label.Font = Enum.Font.GothamMedium
+	label.Text = labelText
+	label.TextColor3 = Color3.fromRGB(180, 180, 190)
+	label.TextSize = 12
+	label.TextXAlignment = Enum.TextXAlignment.Left
+	label.Parent = mainFrame
+
+	local textBox = Instance.new("TextBox")
+	textBox.Name = name
+	textBox.Size = UDim2.new(1, -30, 0, 32)
+	textBox.Position = UDim2.new(0, 15, 0, 65 + (orderIndex * 65))
+	textBox.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
+	textBox.Font = Enum.Font.Gotham
+	textBox.PlaceholderText = "6937742258"
+	textBox.Text = defaultText
+	textBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+	textBox.TextSize = 12
+	textBox.ClearTextOnFocus = false
+	textBox.Parent = mainFrame
+
+	local tbCorner = Instance.new("UICorner")
+	tbCorner.CornerRadius = UDim.new(0, 8)
+	tbCorner.Parent = textBox
+
+	return textBox
+end
+
+local boxOff = createInputRow("ShiftlockOffBox", "Shiftlock Off Image ID", "6937742258", 0)
+local boxOn = createInputRow("ShiftlockOnBox", "Shiftlock On Image ID", "6937742258", 1)
+local boxCrosshair = createInputRow("CrosshairBox", "Crosshair Image ID", "6937742258", 2)
+
+local function formatAssetId(text)
+	if text == "" or text == nil then
+		return "rbxassetid://6937742258"
+	end
+	if tonumber(text) then
+		return "rbxassetid://" .. text
+	end
+	return text
+end
+
+local shiftlockToggleButton = Instance.new("ImageButton")
+shiftlockToggleButton.Name = "ShiftlockToggleButton"
+shiftlockToggleButton.Size = UDim2.new(0, 45, 0, 45)
+shiftlockToggleButton.AnchorPoint = Vector2.new(1, 1)
+shiftlockToggleButton.Position = UDim2.new(1, -140, 1, -20)
+shiftlockToggleButton.BackgroundTransparency = 1
+shiftlockToggleButton.Image = formatAssetId(boxOff.Text)
+shiftlockToggleButton.Parent = screenGui
+
+local shiftlockActive = false
+
+local shiftlockCursorGui = Instance.new("ImageLabel")
+shiftlockCursorGui.Name = "ShiftlockCursor"
+shiftlockCursorGui.Size = UDim2.new(0, 32, 0, 32)
+shiftlockCursorGui.AnchorPoint = Vector2.new(0.5, 0.5)
+shiftlockCursorGui.Position = UDim2.new(0.5, 0, 0.5, 0)
+shiftlockCursorGui.BackgroundTransparency = 1
+shiftlockCursorGui.Visible = false
+shiftlockCursorGui.ZIndex = 10
+shiftlockCursorGui.Parent = screenGui
+
+local crosshairGui = Instance.new("ImageLabel")
+crosshairGui.Name = "CrosshairCursor"
+crosshairGui.Size = UDim2.new(0, 24, 0, 24)
+crosshairGui.AnchorPoint = Vector2.new(0.5, 0.5)
+crosshairGui.Position = UDim2.new(0.5, 0, 0.5, 0)
+crosshairGui.BackgroundTransparency = 1
+crosshairGui.Visible = false
+crosshairGui.ZIndex = 10
+crosshairGui.Parent = screenGui
+
+boxOff:GetPropertyChangedSignal("Text"):Connect(function()
+	if not shiftlockActive then
+		shiftlockToggleButton.Image = formatAssetId(boxOff.Text)
+	end
+end)
+
+boxOn:GetPropertyChangedSignal("Text"):Connect(function()
+	if shiftlockActive then
+		shiftlockToggleButton.Image = formatAssetId(boxOn.Text)
+	end
+end)
+
+local function toggleShiftlock()
+	shiftlockActive = not shiftlockActive
+	
+	if shiftlockActive then
+		UserInputService.MouseBehavior = Enum.MouseBehavior.LockCenter
+		UserInputService.MouseIconEnabled = false
+		
+		shiftlockToggleButton.Image = formatAssetId(boxOn.Text)
+
+		crosshairGui.Image = formatAssetId(boxCrosshair.Text)
+		crosshairGui.Visible = true
+	else
+		UserInputService.MouseBehavior = Enum.MouseBehavior.Default
+		UserInputService.MouseIconEnabled = true
+		
+		shiftlockToggleButton.Image = formatAssetId(boxOff.Text)
+
+		crosshairGui.Visible = false
+	end
+end
+
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+	if gameProcessed then return end
+	if input.KeyCode == Enum.KeyCode.LeftShift or input.KeyCode == Enum.KeyCode.RightShift then
+		toggleShiftlock()
+	end
+end)
+
+shiftlockToggleButton.MouseButton1Click:Connect(function()
+	toggleShiftlock()
+end)
+
+closeButton.MouseButton1Click:Connect(function()
+	mainFrame.Visible = false
+	openButton.Visible = true
+end)
+
+openButton.MouseButton1Click:Connect(function()
+	mainFrame.Visible = true
+	openButton.Visible = false
+end)
+
+RunService.RenderStepped:Connect(function()
+	if shiftlockActive then
+		local character = player.Character
+		if character and character:FindFirstChild("HumanoidRootPart") then
+			local camera = workspace.CurrentCamera
+			local humanoid = character:FindFirstChildOfClass("Humanoid")
+			if humanoid and humanoid.Health > 0 then
+				character.HumanoidRootPart.CFrame = CFrame.new(character.HumanoidRootPart.Position, Vector3.new(camera.CFrame.LookVector.X * 10000 + character.HumanoidRootPart.Position.X, character.HumanoidRootPart.Position.Y, camera.CFrame.LookVector.Z * 10000 + character.HumanoidRootPart.Position.Z))
+				humanoid.AutoRotate = false
+			end
+		end
+	else
+		local character = player.Character
+		if character then
+			local humanoid = character:FindFirstChildOfClass("Humanoid")
+			if humanoid then
+				humanoid.AutoRotate = true
+			end
+		end
+	end
+end)
