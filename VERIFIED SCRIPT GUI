@@ -1,3 +1,8 @@
+--[[
+	All-in-One Hacker Intro & GUI Script (Corrected: × Button Preserved, Larger Top-Left Activator & Bigger Spinning Image)
+	Runs entirely from a single LocalScript inside StarterGui.
+]]
+
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
@@ -5,6 +10,7 @@ local RunService = game:GetService("RunService")
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
+-- Create main ScreenGui
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "HackerIntroGui"
 screenGui.IgnoreGuiInset = true
@@ -265,7 +271,7 @@ centerFrame:Destroy()
 -- 6. HACKER GUI (TOGGLEABLE & DRAGGABLE)
 --------------------------------------------------------------------------------
 local hackerGui = Instance.new("Frame")
-hackerGui.Size = UDim2.new(0, 450, 0, 380) -- Expanded to comfortably fit all three buttons
+hackerGui.Size = UDim2.new(0, 450, 0, 380)
 hackerGui.AnchorPoint = Vector2.new(0.5, 0.5)
 hackerGui.Position = UDim2.new(0.5, 0, 0.5, 0)
 hackerGui.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
@@ -282,23 +288,99 @@ guiStroke.Color = Color3.fromRGB(0, 255, 65)
 guiStroke.Thickness = 2
 guiStroke.Parent = hackerGui
 
-local titleLabel = Instance.new("TextLabel")
-titleLabel.Size = UDim2.new(0, 250, 0, 40)
-titleLabel.Position = UDim2.new(0, 15, 0, 5)
-titleLabel.BackgroundTransparency = 1
-titleLabel.TextColor3 = Color3.fromRGB(0, 255, 65)
-titleLabel.TextSize = 16
-titleLabel.Font = Enum.Font.Code
-titleLabel.TextXAlignment = Enum.TextXAlignment.Left
-titleLabel.Text = "Verified script GUI"
-titleLabel.Parent = hackerGui
+-- Larger Background/Activator Image inside the main panel at the top-left (behind panel layer)
+local bgImageButton = Instance.new("ImageButton")
+bgImageButton.Name = "BgTopLeftImage"
+bgImageButton.Size = UDim2.new(0, 50, 0, 50) -- Made bigger (50x50)
+bgImageButton.Position = UDim2.new(0, 10, 0, 10) -- Top-left of the main panel
+bgImageButton.BackgroundTransparency = 1
+bgImageButton.Image = "rbxassetid://92039493105942"
+bgImageButton.ZIndex = 1 -- Sits behind other GUI contents
+bgImageButton.Parent = hackerGui
 
+local bgCorner = Instance.new("UICorner")
+bgCorner.CornerRadius = UDim.new(0, 8)
+bgCorner.Parent = bgImageButton
+
+-- Spinning Target Image (Spawns when background activator is tapped)
+local spinningImage = nil
+local isSpinningActive = false
+local spinConn = nil
+
+bgImageButton.MouseButton1Click:Connect(function()
+	if not isSpinningActive then
+		isSpinningActive = true
+		
+		-- Create the larger spinning image element on screenGui
+		spinningImage = Instance.new("ImageLabel")
+		spinningImage.Size = UDim2.new(0, 120, 0, 120) -- Made much bigger (120x120)
+		spinningImage.AnchorPoint = Vector2.new(0.5, 0.5)
+		spinningImage.Position = UDim2.new(0, 80, 0, 80)
+		spinningImage.BackgroundTransparency = 1
+		spinningImage.Image = "rbxassetid://92039493105942"
+		spinningImage.ZIndex = 10
+		spinningImage.Parent = screenGui
+		
+		local spinCorner = Instance.new("UICorner")
+		spinCorner.CornerRadius = UDim.new(0, 12)
+		spinCorner.Parent = spinningImage
+		
+		-- Smoothly move it to the top right of the screen
+		TweenService:Create(spinningImage, TweenInfo.new(0.8, Enum.EasingStyle.Exponential), {
+			Position = UDim2.new(1, -80, 0, 80)
+		}):Play()
+		
+		-- Continuous Spin Loop
+		spinConn = RunService.RenderStepped:Connect(function(dt)
+			if spinningImage and spinningImage.Parent then
+				spinningImage.Rotation = spinningImage.Rotation + (150 * dt)
+			end
+		end)
+	else
+		-- When activator is pressed again, stop spinning and fade out ONLY the spinning image
+		isSpinningActive = false
+		if spinConn then
+			spinConn:Disconnect()
+			spinConn = nil
+		end
+		
+		if spinningImage then
+			local fadeTween = TweenService:Create(spinningImage, TweenInfo.new(0.5), {ImageTransparency = 1})
+			fadeTween:Play()
+			fadeTween.Completed:Connect(function()
+				if spinningImage then
+					spinningImage:Destroy()
+					spinningImage = nil
+				end
+			end)
+		end
+	end
+end)
+
+-- Green Text Top Left: "VERIFIED SCRIPT GUI"
+local topTitle = Instance.new("TextLabel")
+topTitle.Size = UDim2.new(0, 300, 0, 35)
+topTitle.Position = UDim2.new(0, 70, 0, 15) -- Offset to the right of the top-left image
+topTitle.BackgroundTransparency = 1
+topTitle.TextColor3 = Color3.fromRGB(0, 255, 65)
+topTitle.TextSize = 15
+topTitle.Font = Enum.Font.Code
+topTitle.TextXAlignment = Enum.TextXAlignment.Left
+topTitle.Text = "VERIFIED SCRIPT GUI"
+topTitle.ZIndex = 3
+topTitle.Parent = hackerGui
+
+-- Close / Shrink Button (Restored to standard "×" text button)
 local closeButton = Instance.new("TextButton")
 closeButton.Size = UDim2.new(0, 32, 0, 32)
 closeButton.Position = UDim2.new(1, -40, 0, 10)
 closeButton.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 closeButton.AutoButtonColor = false
-closeButton.Text = ""
+closeButton.Text = "×"
+closeButton.TextColor3 = Color3.fromRGB(0, 255, 65)
+closeButton.TextSize = 20
+closeButton.Font = Enum.Font.Code
+closeButton.ZIndex = 3
 closeButton.Parent = hackerGui
 
 local closeCorner = Instance.new("UICorner")
@@ -310,17 +392,9 @@ closeStroke.Color = Color3.fromRGB(0, 255, 65)
 closeStroke.Thickness = 1
 closeStroke.Parent = closeButton
 
-local buttonImg = Instance.new("ImageLabel")
-buttonImg.Size = UDim2.new(0.8, 0, 0.8, 0)
-buttonImg.AnchorPoint = Vector2.new(0.5, 0.5)
-buttonImg.Position = UDim2.new(0.5, 0, 0.5, 0)
-buttonImg.BackgroundTransparency = 1
-buttonImg.Image = "rbxassetid://139619959097679"
-buttonImg.Parent = closeButton
-
 local contentLabel = Instance.new("TextLabel")
 contentLabel.Size = UDim2.new(1, -30, 0, 45)
-contentLabel.Position = UDim2.new(0, 15, 0, 45)
+contentLabel.Position = UDim2.new(0, 15, 0, 65)
 contentLabel.BackgroundTransparency = 1
 contentLabel.TextColor3 = Color3.fromRGB(0, 200, 50)
 contentLabel.TextSize = 14
@@ -328,18 +402,20 @@ contentLabel.Font = Enum.Font.Code
 contentLabel.TextXAlignment = Enum.TextXAlignment.Left
 contentLabel.TextYAlignment = Enum.TextYAlignment.Top
 contentLabel.Text = "> System Initialized...\n> User: " .. player.Name .. "\n> Status: Verified Secure"
+contentLabel.ZIndex = 3
 contentLabel.Parent = hackerGui
 
 -- 1. "verified script music" Button
 local musicButton = Instance.new("TextButton")
 musicButton.Size = UDim2.new(1, -30, 0, 35)
-musicButton.Position = UDim2.new(0, 15, 0, 100)
+musicButton.Position = UDim2.new(0, 15, 0, 120)
 musicButton.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
 musicButton.TextColor3 = Color3.fromRGB(0, 255, 65)
 musicButton.TextSize = 15
 musicButton.Font = Enum.Font.Code
 musicButton.Text = "verified script music"
 musicButton.AutoButtonColor = true
+musicButton.ZIndex = 3
 musicButton.Parent = hackerGui
 
 local musicBtnCorner = Instance.new("UICorner")
@@ -352,24 +428,22 @@ musicBtnStroke.Thickness = 1
 musicBtnStroke.Parent = musicButton
 
 musicButton.MouseButton1Click:Connect(function()
-	local success, err = pcall(function()
+	pcall(function()
 		loadstring(game:HttpGet("https://raw.githubusercontent.com/VerifiedScripter/Verified-script-music/refs/heads/main/Script"))()
 	end)
-	if not success then
-		warn("Failed to load music script: " .. tostring(err))
-	end
 end)
 
 -- 2. "surfing" Button
 local surfingButton = Instance.new("TextButton")
 surfingButton.Size = UDim2.new(1, -30, 0, 35)
-surfingButton.Position = UDim2.new(0, 15, 0, 145)
+surfingButton.Position = UDim2.new(0, 15, 0, 165)
 surfingButton.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
 surfingButton.TextColor3 = Color3.fromRGB(0, 255, 65)
 surfingButton.TextSize = 15
 surfingButton.Font = Enum.Font.Code
 surfingButton.Text = "surfing"
 surfingButton.AutoButtonColor = true
+surfingButton.ZIndex = 3
 surfingButton.Parent = hackerGui
 
 local surfingBtnCorner = Instance.new("UICorner")
@@ -382,24 +456,22 @@ surfingBtnStroke.Thickness = 1
 surfingBtnStroke.Parent = surfingButton
 
 surfingButton.MouseButton1Click:Connect(function()
-	local success, err = pcall(function()
+	pcall(function()
 		loadstring(game:HttpGet("https://raw.githubusercontent.com/VerifiedScripter/Verified-script-music/refs/heads/main/VSSurfing"))()
 	end)
-	if not success then
-		warn("Failed to load surfing script: " .. tostring(err))
-	end
 end)
 
 -- 3. "custom shiftlock & crosshair" Button
 local shiftlockButton = Instance.new("TextButton")
 shiftlockButton.Size = UDim2.new(1, -30, 0, 35)
-shiftlockButton.Position = UDim2.new(0, 15, 0, 190)
+shiftlockButton.Position = UDim2.new(0, 15, 0, 210)
 shiftlockButton.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
 shiftlockButton.TextColor3 = Color3.fromRGB(0, 255, 65)
 shiftlockButton.TextSize = 15
 shiftlockButton.Font = Enum.Font.Code
 shiftlockButton.Text = "custom shiftlock & crosshair"
 shiftlockButton.AutoButtonColor = true
+shiftlockButton.ZIndex = 3
 shiftlockButton.Parent = hackerGui
 
 local shiftlockBtnCorner = Instance.new("UICorner")
@@ -412,12 +484,9 @@ shiftlockBtnStroke.Thickness = 1
 shiftlockBtnStroke.Parent = shiftlockButton
 
 shiftlockButton.MouseButton1Click:Connect(function()
-	local success, err = pcall(function()
+	pcall(function()
 		loadstring(game:HttpGet("https://raw.githubusercontent.com/VerifiedScripter/Verified-script-music/refs/heads/main/Custom%20shiftlock%20%26%20crosshair"))()
 	end)
-	if not success then
-		warn("Failed to load shiftlock script: " .. tostring(err))
-	end
 end)
 
 -- Dragging Helper Function for UI Elements
@@ -465,13 +534,13 @@ closeButton.MouseButton1Click:Connect(function()
 	if hackerGui.Visible then
 		hackerGui.Visible = false
 		
-		-- Create a floating draggable reopen button
+		-- Create a floating draggable reopen button using image ID 92039493105942
 		local openButton = Instance.new("ImageButton")
 		openButton.Name = "OpenButton"
 		openButton.Size = UDim2.new(0, 45, 0, 45)
 		openButton.Position = UDim2.new(0, 20, 0.8, 0)
 		openButton.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
-		openButton.Image = "rbxassetid://139619959097679"
+		openButton.Image = "rbxassetid://92039493105942"
 		openButton.Parent = screenGui
 		
 		local openCorner = Instance.new("UICorner")
