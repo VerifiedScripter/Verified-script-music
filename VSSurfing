@@ -1,0 +1,170 @@
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+local LocalPlayer = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
+
+local isIcyActive = false
+local slideVelocity = Vector3.new(0, 0, 0)
+
+------------------------------------------------------------------
+-- MAIN GUI CREATION
+------------------------------------------------------------------
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "SurfGui"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+
+------------------------------------------------------------------
+-- TOP LEFT "ICE" GUI TOGGLE CREATION (Available Immediately)
+------------------------------------------------------------------
+local toggleButton = Instance.new("TextButton")
+toggleButton.Name = "IceToggleBtn"
+toggleButton.Size = UDim2.new(0, 120, 0, 40)
+toggleButton.Position = UDim2.new(0, 20, 0, 20) -- Top Left Corner
+toggleButton.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+toggleButton.TextColor3 = Color3.fromRGB(200, 200, 200)
+toggleButton.Font = Enum.Font.GothamBold
+toggleButton.TextSize = 16
+toggleButton.Text = "ice: OFF"
+toggleButton.AutoButtonColor = false
+toggleButton.ZIndex = 5
+toggleButton.Parent = screenGui
+
+local uicorner = Instance.new("UICorner")
+uicorner.CornerRadius = UDim.new(0, 6)
+uicorner.Parent = toggleButton
+
+local stroke = Instance.new("UIStroke")
+stroke.Color = Color3.fromRGB(0, 162, 255)
+stroke.Thickness = 1.5
+stroke.Parent = toggleButton
+
+toggleButton.MouseButton1Click:Connect(function()
+	isIcyActive = not isIcyActive
+	if isIcyActive then
+		toggleButton.Text = "ice: ON"
+		toggleButton.TextColor3 = Color3.fromRGB(0, 255, 120)
+		toggleButton.BackgroundColor3 = Color3.fromRGB(30, 45, 30)
+	else
+		toggleButton.Text = "ice: OFF"
+		toggleButton.TextColor3 = Color3.fromRGB(200, 200, 200)
+		toggleButton.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+		slideVelocity = Vector3.new(0, 0, 0)
+	end
+end)
+
+------------------------------------------------------------------
+-- INTRO GUI CREATION (Transparent Background + Binary & Images)
+------------------------------------------------------------------
+local introFrame = Instance.new("Frame")
+introFrame.Name = "IntroFrame"
+introFrame.Size = UDim2.new(1, 0, 1, 0)
+introFrame.BackgroundTransparency = 1
+introFrame.BorderSizePixel = 0
+introFrame.ZIndex = 10
+introFrame.Parent = screenGui
+
+local binaryBg = Instance.new("TextLabel")
+binaryBg.Size = UDim2.new(1, 0, 1, 0)
+binaryBg.BackgroundTransparency = 1
+binaryBg.TextColor3 = Color3.fromRGB(0, 255, 100)
+binaryBg.TextTransparency = 0.5
+binaryBg.Font = Enum.Font.Code
+binaryBg.TextSize = 14
+binaryBg.TextWrapped = true
+binaryBg.TextXAlignment = Enum.TextXAlignment.Left
+binaryBg.TextYAlignment = Enum.TextYAlignment.Top
+binaryBg.Text = "01010011 01110101 01110010 01100110 01100101 01110100\n" .. string.rep("10101011 01010101 11001100 00110011\n", 40)
+binaryBg.ZIndex = 11
+binaryBg.Parent = introFrame
+
+local introText = Instance.new("TextLabel")
+introText.Size = UDim2.new(1, 0, 0, 50)
+introText.Position = UDim2.new(0, 0, 0.2, 0)
+introText.BackgroundTransparency = 1
+introText.TextColor3 = Color3.fromRGB(0, 255, 120)
+introText.Font = Enum.Font.Code
+introText.TextSize = 26
+introText.Text = ""
+introText.ZIndex = 12
+introText.Parent = introFrame
+
+local introImage = Instance.new("ImageLabel")
+introImage.Size = UDim2.new(0, 250, 0, 250)
+introImage.Position = UDim2.new(0.5, -125, 0.45, -125)
+introImage.BackgroundTransparency = 1
+introImage.ImageTransparency = 1
+introImage.ZIndex = 12
+introImage.Parent = introFrame
+
+local imgCorner = Instance.new("UICorner")
+imgCorner.CornerRadius = UDim.new(0, 12)
+imgCorner.Parent = introImage
+
+-- Run Intro Sequence
+task.spawn(function()
+	local function typeText(message, delayTime)
+		introText.Text = ""
+		for i = 1, #message do
+			introText.Text = string.sub(message, 1, i)
+			task.wait(delayTime or 0.04)
+		end
+	end
+
+	task.wait(0.5)
+	typeText("verified script: surfer", 0.04)
+	task.wait(1.0)
+	
+	introText.Text = ""
+	introImage.Image = "rbxassetid://4845733115"
+	TweenService:Create(introImage, TweenInfo.new(0.5), {ImageTransparency = 0}):Play()
+	task.wait(1.8)
+	
+	local fadeOutImg = TweenService:Create(introImage, TweenInfo.new(0.5), {ImageTransparency = 1})
+	fadeOutImg:Play()
+	fadeOutImg.Completed:Wait()
+	
+	introImage.Image = "rbxassetid://139619959097679"
+	TweenService:Create(introImage, TweenInfo.new(0.5), {ImageTransparency = 0}):Play()
+	task.wait(1.8)
+	
+	local tweenInfo = TweenInfo.new(0.8, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+	TweenService:Create(introImage, tweenInfo, {ImageTransparency = 1}):Play()
+	local fadeBg = TweenService:Create(binaryBg, tweenInfo, {TextTransparency = 1})
+	fadeBg:Play()
+	
+	fadeBg.Completed:Wait()
+	introFrame:Destroy()
+end)
+
+------------------------------------------------------------------
+-- DYNAMIC TURNING & DRIFTING ICE MOMENTUM LOOP (RenderStepped)
+------------------------------------------------------------------
+RunService.RenderStepped:Connect(function(dt)
+	local character = LocalPlayer.Character
+	if not character then return end
+	local hrp = character:FindFirstChild("HumanoidRootPart")
+	local humanoid = character:FindFirstChildOfClass("Humanoid")
+	
+	if not hrp or not humanoid then return end
+	
+	if isIcyActive and humanoid.FloorMaterial ~= Enum.Material.Air then
+		local moveDir = humanoid.MoveDirection
+		
+		if moveDir.Magnitude > 0 then
+			-- Map move direction relative to camera facing/turning layout
+			local targetVel = moveDir * humanoid.WalkSpeed * 1.8
+			-- Faster response blending when turning steering angles actively
+			slideVelocity = slideVelocity:Lerp(targetVel, math.clamp(dt * 10, 0, 1))
+		else
+			-- Long continuous drift/glide when keys are released
+			slideVelocity = slideVelocity:Lerp(Vector3.new(0, 0, 0), math.clamp(dt * 0.35, 0, 1))
+		end
+		
+		hrp.AssemblyLinearVelocity = Vector3.new(slideVelocity.X, hrp.AssemblyLinearVelocity.Y, slideVelocity.Z)
+	else
+		slideVelocity = Vector3.new(0, 0, 0)
+	end
+end)
