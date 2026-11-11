@@ -1,0 +1,363 @@
+-- LocalScript inside StarterPlayerScripts
+
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+local camera = workspace.CurrentCamera
+
+-- Configuration Variables
+local MIN_SENSITIVITY = 0.1
+local MAX_SENSITIVITY = 3.0
+local DEFAULT_SENSITIVITY = 1.0
+
+--------------------------------------------------------------------------------
+-- GUI CREATION
+--------------------------------------------------------------------------------
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "SensitivityGui"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = playerGui
+
+-- Main Container Frame (Taller to fit multiple buttons)
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "MainFrame"
+mainFrame.Size = UDim2.new(0, 310, 0, 255)
+mainFrame.Position = UDim2.new(0.5, -155, 0.5, -127)
+mainFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+mainFrame.BorderSizePixel = 0
+mainFrame.Active = true
+mainFrame.Parent = screenGui
+
+local mainCorner = Instance.new("UICorner")
+mainCorner.CornerRadius = UDim.new(0, 12)
+mainCorner.Parent = mainFrame
+
+-- Title
+local titleLabel = Instance.new("TextLabel")
+titleLabel.Name = "Title"
+titleLabel.Size = UDim2.new(1, -40, 0, 40)
+titleLabel.Position = UDim2.new(0, 15, 0, 0)
+titleLabel.BackgroundTransparency = 1
+titleLabel.Text = "Camera Settings"
+titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+titleLabel.TextSize = 18
+titleLabel.Font = Enum.Font.GothamBold
+titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+titleLabel.Parent = mainFrame
+
+-- Close Button (×)
+local closeButton = Instance.new("TextButton")
+closeButton.Name = "CloseButton"
+closeButton.Size = UDim2.new(0, 30, 0, 30)
+closeButton.Position = UDim2.new(1, -35, 0, 8)
+closeButton.BackgroundColor3 = Color3.fromRGB(220, 60, 60)
+closeButton.Text = "×"
+closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeButton.TextSize = 20
+closeButton.Font = Enum.Font.GothamBold
+closeButton.BorderSizePixel = 0
+closeButton.Parent = mainFrame
+
+local closeCorner = Instance.new("UICorner")
+closeCorner.CornerRadius = UDim.new(0, 8)
+closeCorner.Parent = closeButton
+
+closeButton.MouseButton1Click:Connect(function()
+	screenGui:Destroy()
+end)
+
+-- Sensitivity Label & Value Display
+local sensitivityLabel = Instance.new("TextLabel")
+sensitivityLabel.Name = "SensLabel"
+sensitivityLabel.Size = UDim2.new(1, -30, 0, 20)
+sensitivityLabel.Position = UDim2.new(0, 15, 0, 50)
+sensitivityLabel.BackgroundTransparency = 1
+sensitivityLabel.Text = "Sensitivity: " .. string.format("%.2f", DEFAULT_SENSITIVITY)
+sensitivityLabel.TextColor3 = Color3.fromRGB(200, 200, 210)
+sensitivityLabel.TextSize = 14
+sensitivityLabel.Font = Enum.Font.Gotham
+sensitivityLabel.TextXAlignment = Enum.TextXAlignment.Left
+sensitivityLabel.Parent = mainFrame
+
+-- Slider Track Background
+local sliderTrack = Instance.new("Frame")
+sliderTrack.Name = "SliderTrack"
+sliderTrack.Size = UDim2.new(1, -30, 0, 10)
+sliderTrack.Position = UDim2.new(0, 15, 0, 95)
+sliderTrack.BackgroundColor3 = Color3.fromRGB(60, 60, 75)
+sliderTrack.BorderSizePixel = 0
+sliderTrack.Parent = mainFrame
+
+local trackCorner = Instance.new("UICorner")
+trackCorner.CornerRadius = UDim.new(1, 0)
+trackCorner.Parent = sliderTrack
+
+-- Slider Fill Bar
+local sliderFill = Instance.new("Frame")
+sliderFill.Name = "SliderFill"
+sliderFill.Size = UDim2.new(0.5, 0, 1, 0)
+sliderFill.BackgroundColor3 = Color3.fromRGB(0, 162, 255)
+sliderFill.BorderSizePixel = 0
+sliderFill.Parent = sliderTrack
+
+local fillCorner = Instance.new("UICorner")
+fillCorner.CornerRadius = UDim.new(1, 0)
+fillCorner.Parent = sliderFill
+
+-- Slider Knob Button
+local sliderKnob = Instance.new("TextButton")
+sliderKnob.Name = "SliderKnob"
+sliderKnob.Size = UDim2.new(0, 20, 0, 20)
+sliderKnob.AnchorPoint = Vector2.new(0.5, 0.5)
+sliderKnob.Position = UDim2.new(0.5, 0, 0.5, 0)
+sliderKnob.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+sliderKnob.Text = ""
+sliderKnob.BorderSizePixel = 0
+sliderKnob.Parent = sliderTrack
+
+local knobCorner = Instance.new("UICorner")
+knobCorner.CornerRadius = UDim.new(1, 0)
+knobCorner.Parent = sliderKnob
+
+--------------------------------------------------------------------------------
+-- ACTION BUTTONS LAYOUT
+--------------------------------------------------------------------------------
+local buttonHolder = Instance.new("Frame")
+buttonHolder.Name = "ButtonHolder"
+buttonHolder.Size = UDim2.new(1, -30, 0, 100)
+buttonHolder.Position = UDim2.new(0, 15, 0, 125)
+buttonHolder.BackgroundTransparency = 1
+buttonHolder.Parent = mainFrame
+
+local uiLayout = Instance.new("UIListLayout")
+uiLayout.FillDirection = Enum.FillDirection.Vertical
+uiLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+uiLayout.SortOrder = Enum.SortOrder.LayoutOrder
+uiLayout.Padding = UDim.new(0, 8)
+uiLayout.Parent = buttonHolder
+
+-- Reset to Normal Button
+local resetButton = Instance.new("TextButton")
+resetButton.Name = "ResetButton"
+resetButton.Size = UDim2.new(1, 0, 0, 26)
+resetButton.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
+resetButton.Text = "Reset to 1"
+resetButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+resetButton.TextSize = 13
+resetButton.Font = Enum.Font.GothamBold
+resetButton.BorderSizePixel = 0
+resetButton.LayoutOrder = 1
+resetButton.Parent = buttonHolder
+
+local resetCorner = Instance.new("UICorner")
+resetCorner.CornerRadius = UDim.new(0, 8)
+resetCorner.Parent = resetButton
+
+-- Character 360 Spin Button
+local spin360Button = Instance.new("TextButton")
+spin360Button.Name = "Spin360Button"
+spin360Button.Size = UDim2.new(1, 0, 0, 26)
+spin360Button.BackgroundColor3 = Color3.fromRGB(0, 140, 90)
+spin360Button.Text = "character 360 spin"
+spin360Button.TextColor3 = Color3.fromRGB(255, 255, 255)
+spin360Button.TextSize = 13
+spin360Button.Font = Enum.Font.GothamBold
+spin360Button.BorderSizePixel = 0
+spin360Button.LayoutOrder = 2
+spin360Button.Parent = buttonHolder
+
+local spin360Corner = Instance.new("UICorner")
+spin360Corner.CornerRadius = UDim.new(0, 8)
+spin360Corner.Parent = spin360Button
+
+-- Spin Character and Camera Button
+local spinBothButton = Instance.new("TextButton")
+spinBothButton.Name = "SpinBothButton"
+spinBothButton.Size = UDim2.new(1, 0, 0, 26)
+spinBothButton.BackgroundColor3 = Color3.fromRGB(150, 80, 0)
+spinBothButton.Text = "spin character and camera"
+spinBothButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+spinBothButton.TextSize = 13
+spinBothButton.Font = Enum.Font.GothamBold
+spinBothButton.BorderSizePixel = 0
+spinBothButton.LayoutOrder = 3
+spinBothButton.Parent = buttonHolder
+
+local spinBothCorner = Instance.new("UICorner")
+spinBothCorner.CornerRadius = UDim.new(0, 8)
+spinBothCorner.Parent = spinBothButton
+
+--------------------------------------------------------------------------------
+-- DRAGGABLE GUI FUNCTIONALITY (Touch & Mouse Support)
+--------------------------------------------------------------------------------
+local draggingGui = false
+local dragStartPos = nil
+local frameStartPos = nil
+
+mainFrame.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+		local mousePos = input.Position
+		draggingGui = true
+		dragStartPos = mousePos
+		frameStartPos = mainFrame.Position
+
+		input.Changed:Connect(function()
+			if input.UserInputState == Enum.UserInputState.End then
+				draggingGui = false
+			end
+		end)
+	end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+	if draggingGui and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+		local delta = input.Position - dragStartPos
+		mainFrame.Position = UDim2.new(
+			frameStartPos.X.Scale,
+			frameStartPos.X.Offset + delta.X,
+			frameStartPos.Y.Scale,
+			frameStartPos.Y.Offset + delta.Y
+		)
+	end
+end)
+
+--------------------------------------------------------------------------------
+-- SENSITIVITY SLIDER LOGIC & MOBILE OVERRIDE
+--------------------------------------------------------------------------------
+local currentSensitivity = DEFAULT_SENSITIVITY
+local draggingSlider = false
+
+local function setSensitivityValue(val)
+	currentSensitivity = math.clamp(val, MIN_SENSITIVITY, MAX_SENSITIVITY)
+	local alpha = (currentSensitivity - MIN_SENSITIVITY) / (MAX_SENSITIVITY - MIN_SENSITIVITY)
+
+	sliderFill.Size = UDim2.new(alpha, 0, 1, 0)
+	sliderKnob.Position = UDim2.new(alpha, 0, 0.5, 0)
+	sensitivityLabel.Text = "Sensitivity: " .. string.format("%.2f", currentSensitivity)
+
+	local success, userSettings = pcall(function()
+		return UserSettings():GetService("UserGameSettings")
+	end)
+	if success and userSettings then
+		pcall(function()
+			userSettings.MouseSensitivity = currentSensitivity / MAX_SENSITIVITY
+		end)
+	end
+end
+
+local function updateSlider(inputPositionX)
+	local trackAbsolutePos = sliderTrack.AbsolutePosition.X
+	local trackAbsoluteSize = sliderTrack.AbsoluteSize.X
+	local relativeX = math.clamp(inputPositionX - trackAbsolutePos, 0, trackAbsoluteSize)
+	local alpha = relativeX / trackAbsoluteSize
+
+	local calculatedSens = MIN_SENSITIVITY + alpha * (MAX_SENSITIVITY - MIN_SENSITIVITY)
+	setSensitivityValue(calculatedSens)
+end
+
+sliderKnob.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+		draggingSlider = true
+	end
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+		draggingSlider = false
+	end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+	if draggingSlider and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+		updateSlider(input.Position.X)
+	end
+end)
+
+-- Mobile & Custom Camera Pan Support via InputChanged delta manipulation
+UserInputService.InputChanged:Connect(function(input, gameProcessed)
+	if gameProcessed then return end
+	if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseMovement then
+		if input.UserInputState == Enum.UserInputState.Change then
+			local delta = input.Delta
+			local scaleFactor = (currentSensitivity / DEFAULT_SENSITIVITY) - 1.0
+			if math.abs(scaleFactor) > 0.01 then
+				camera.CFrame = camera.CFrame * CFrame.Angles(
+					-math.rad(delta.Y * 0.15 * scaleFactor),
+					-math.rad(delta.X * 0.15 * scaleFactor),
+					0
+				)
+			end
+		end
+	end
+end)
+
+--------------------------------------------------------------------------------
+-- BUTTON ACTIONS: RESET, 360 SPIN, & SPIN BOTH
+--------------------------------------------------------------------------------
+resetButton.MouseButton1Click:Connect(function()
+	setSensitivityValue(DEFAULT_SENSITIVITY)
+end)
+
+local isSpinning360 = false
+spin360Button.MouseButton1Click:Connect(function()
+	if isSpinning360 then return end
+	local character = player.Character
+	if not character or not character:FindFirstChild("HumanoidRootPart") then return end
+	local rootPart = character.HumanoidRootPart
+
+	isSpinning360 = true
+	local totalRotated = 0
+	local targetRotation = math.rad(360)
+	local baseSpeed = 10 -- Base rotation speed
+	
+	local connection
+	connection = RunService.RenderStepped:Connect(function(dt)
+		local speed = baseSpeed * currentSensitivity
+		local step = speed * dt
+		
+		totalRotated = totalRotated + step
+		if totalRotated >= targetRotation then
+			local remainder = totalRotated - targetRotation
+			step = step - remainder
+			rootPart.CFrame = rootPart.CFrame * CFrame.Angles(0, step, 0)
+			
+			connection:Disconnect()
+			isSpinning360 = false
+		else
+			rootPart.CFrame = rootPart.CFrame * CFrame.Angles(0, step, 0)
+		end
+	end)
+end)
+
+local isSpinningBoth = false
+spinBothButton.MouseButton1Click:Connect(function()
+	if isSpinningBoth then return end
+	local character = player.Character
+	if not character or not character:FindFirstChild("HumanoidRootPart") then return end
+	local rootPart = character.HumanoidRootPart
+
+	isSpinningBoth = true
+	local baseSpeed = 8 -- Speed factor
+	
+	local connection
+	connection = RunService.RenderStepped:Connect(function(dt)
+		local speed = baseSpeed * currentSensitivity
+		local step = speed * dt
+		
+		-- Rotate Character
+		rootPart.CFrame = rootPart.CFrame * CFrame.Angles(0, step, 0)
+		-- Rotate Camera in sync around its focus point
+		camera.CFrame = camera.CFrame * CFrame.Angles(0, step, 0)
+	end)
+
+	-- Let it spin for 2 seconds then stop automatically
+	task.delay(2, function()
+		if connection then
+			connection:Disconnect()
+		end
+		isSpinningBoth = false
+	end)
+end)
