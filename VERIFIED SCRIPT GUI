@@ -1,5 +1,5 @@
 --[[
-	All-in-One Hacker Intro & GUI Script (Corrected: × Button Preserved, Larger Top-Left Activator & Bigger Spinning Image)
+	All-in-One Hacker Intro & GUI Script (With Camera Controls & All Features)
 	Runs entirely from a single LocalScript inside StarterGui.
 ]]
 
@@ -271,7 +271,7 @@ centerFrame:Destroy()
 -- 6. HACKER GUI (TOGGLEABLE & DRAGGABLE)
 --------------------------------------------------------------------------------
 local hackerGui = Instance.new("Frame")
-hackerGui.Size = UDim2.new(0, 450, 0, 380)
+hackerGui.Size = UDim2.new(0, 450, 0, 420) -- Expanded slightly to fit all buttons
 hackerGui.AnchorPoint = Vector2.new(0.5, 0.5)
 hackerGui.Position = UDim2.new(0.5, 0, 0.5, 0)
 hackerGui.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
@@ -291,11 +291,11 @@ guiStroke.Parent = hackerGui
 -- Larger Background/Activator Image inside the main panel at the top-left (behind panel layer)
 local bgImageButton = Instance.new("ImageButton")
 bgImageButton.Name = "BgTopLeftImage"
-bgImageButton.Size = UDim2.new(0, 50, 0, 50) -- Made bigger (50x50)
-bgImageButton.Position = UDim2.new(0, 10, 0, 10) -- Top-left of the main panel
+bgImageButton.Size = UDim2.new(0, 50, 0, 50)
+bgImageButton.Position = UDim2.new(0, 10, 0, 10)
 bgImageButton.BackgroundTransparency = 1
 bgImageButton.Image = "rbxassetid://92039493105942"
-bgImageButton.ZIndex = 1 -- Sits behind other GUI contents
+bgImageButton.ZIndex = 1
 bgImageButton.Parent = hackerGui
 
 local bgCorner = Instance.new("UICorner")
@@ -311,9 +311,8 @@ bgImageButton.MouseButton1Click:Connect(function()
 	if not isSpinningActive then
 		isSpinningActive = true
 		
-		-- Create the larger spinning image element on screenGui
 		spinningImage = Instance.new("ImageLabel")
-		spinningImage.Size = UDim2.new(0, 120, 0, 120) -- Made much bigger (120x120)
+		spinningImage.Size = UDim2.new(0, 120, 0, 120)
 		spinningImage.AnchorPoint = Vector2.new(0.5, 0.5)
 		spinningImage.Position = UDim2.new(0, 80, 0, 80)
 		spinningImage.BackgroundTransparency = 1
@@ -325,19 +324,16 @@ bgImageButton.MouseButton1Click:Connect(function()
 		spinCorner.CornerRadius = UDim.new(0, 12)
 		spinCorner.Parent = spinningImage
 		
-		-- Smoothly move it to the top right of the screen
 		TweenService:Create(spinningImage, TweenInfo.new(0.8, Enum.EasingStyle.Exponential), {
 			Position = UDim2.new(1, -80, 0, 80)
 		}):Play()
 		
-		-- Continuous Spin Loop
 		spinConn = RunService.RenderStepped:Connect(function(dt)
 			if spinningImage and spinningImage.Parent then
 				spinningImage.Rotation = spinningImage.Rotation + (150 * dt)
 			end
 		end)
 	else
-		-- When activator is pressed again, stop spinning and fade out ONLY the spinning image
 		isSpinningActive = false
 		if spinConn then
 			spinConn:Disconnect()
@@ -360,7 +356,7 @@ end)
 -- Green Text Top Left: "VERIFIED SCRIPT GUI"
 local topTitle = Instance.new("TextLabel")
 topTitle.Size = UDim2.new(0, 300, 0, 35)
-topTitle.Position = UDim2.new(0, 70, 0, 15) -- Offset to the right of the top-left image
+topTitle.Position = UDim2.new(0, 70, 0, 15)
 topTitle.BackgroundTransparency = 1
 topTitle.TextColor3 = Color3.fromRGB(0, 255, 65)
 topTitle.TextSize = 15
@@ -370,7 +366,7 @@ topTitle.Text = "VERIFIED SCRIPT GUI"
 topTitle.ZIndex = 3
 topTitle.Parent = hackerGui
 
--- Close / Shrink Button (Restored to standard "×" text button)
+-- Close / Shrink Button (Standard "×" text button)
 local closeButton = Instance.new("TextButton")
 closeButton.Size = UDim2.new(0, 32, 0, 32)
 closeButton.Position = UDim2.new(1, -40, 0, 10)
@@ -407,11 +403,11 @@ contentLabel.Parent = hackerGui
 
 -- 1. "verified script music" Button
 local musicButton = Instance.new("TextButton")
-musicButton.Size = UDim2.new(1, -30, 0, 35)
-musicButton.Position = UDim2.new(0, 15, 0, 120)
+musicButton.Size = UDim2.new(1, -30, 0, 32)
+musicButton.Position = UDim2.new(0, 15, 0, 115)
 musicButton.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
 musicButton.TextColor3 = Color3.fromRGB(0, 255, 65)
-musicButton.TextSize = 15
+musicButton.TextSize = 14
 musicButton.Font = Enum.Font.Code
 musicButton.Text = "verified script music"
 musicButton.AutoButtonColor = true
@@ -435,11 +431,11 @@ end)
 
 -- 2. "surfing" Button
 local surfingButton = Instance.new("TextButton")
-surfingButton.Size = UDim2.new(1, -30, 0, 35)
-surfingButton.Position = UDim2.new(0, 15, 0, 165)
+surfingButton.Size = UDim2.new(1, -30, 0, 32)
+surfingButton.Position = UDim2.new(0, 15, 0, 155)
 surfingButton.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
 surfingButton.TextColor3 = Color3.fromRGB(0, 255, 65)
-surfingButton.TextSize = 15
+surfingButton.TextSize = 14
 surfingButton.Font = Enum.Font.Code
 surfingButton.Text = "surfing"
 surfingButton.AutoButtonColor = true
@@ -463,11 +459,11 @@ end)
 
 -- 3. "custom shiftlock & crosshair" Button
 local shiftlockButton = Instance.new("TextButton")
-shiftlockButton.Size = UDim2.new(1, -30, 0, 35)
-shiftlockButton.Position = UDim2.new(0, 15, 0, 210)
+shiftlockButton.Size = UDim2.new(1, -30, 0, 32)
+shiftlockButton.Position = UDim2.new(0, 15, 0, 195)
 shiftlockButton.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
 shiftlockButton.TextColor3 = Color3.fromRGB(0, 255, 65)
-shiftlockButton.TextSize = 15
+shiftlockButton.TextSize = 14
 shiftlockButton.Font = Enum.Font.Code
 shiftlockButton.Text = "custom shiftlock & crosshair"
 shiftlockButton.AutoButtonColor = true
@@ -486,6 +482,34 @@ shiftlockBtnStroke.Parent = shiftlockButton
 shiftlockButton.MouseButton1Click:Connect(function()
 	pcall(function()
 		loadstring(game:HttpGet("https://raw.githubusercontent.com/VerifiedScripter/Verified-script-music/refs/heads/main/Custom%20shiftlock%20%26%20crosshair"))()
+	end)
+end)
+
+-- 4. "camera controlls" Button
+local cameraButton = Instance.new("TextButton")
+cameraButton.Size = UDim2.new(1, -30, 0, 32)
+cameraButton.Position = UDim2.new(0, 15, 0, 235)
+cameraButton.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+cameraButton.TextColor3 = Color3.fromRGB(0, 255, 65)
+cameraButton.TextSize = 14
+cameraButton.Font = Enum.Font.Code
+cameraButton.Text = "camera controlls"
+cameraButton.AutoButtonColor = true
+cameraButton.ZIndex = 3
+cameraButton.Parent = hackerGui
+
+local cameraBtnCorner = Instance.new("UICorner")
+cameraBtnCorner.CornerRadius = UDim.new(0, 6)
+cameraBtnCorner.Parent = cameraButton
+
+local cameraBtnStroke = Instance.new("UIStroke")
+cameraBtnStroke.Color = Color3.fromRGB(0, 255, 65)
+cameraBtnStroke.Thickness = 1
+cameraBtnStroke.Parent = cameraButton
+
+cameraButton.MouseButton1Click:Connect(function()
+	pcall(function()
+		loadstring(game:HttpGet("https://raw.githubusercontent.com/VerifiedScripter/Verified-script-music/refs/heads/main/VScamcontrolls"))()
 	end)
 end)
 
